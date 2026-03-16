@@ -13,7 +13,7 @@ export default function Home() {
           </p>
         </div>
         <Link
-          href="/sign-in"
+          href="/login"
           className="inline-block px-8 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-lg transition-colors duration-200"
         >
           Se connecter
