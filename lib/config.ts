@@ -44,4 +44,13 @@ export const APP_CONFIG = {
     { label: 'Produits', href: '/dashboard/products', icon: 'products' },
     { label: 'Market Insights', href: '/dashboard/market-insights', icon: 'insights' },
   ],
+  // Admin
+  adminEmail: 'cmouscio@gmail.com',
+
+  // Navigation admin sidebar
+  adminNav: [
+    { label: 'Vue globale', href: '/admin', icon: 'overview' },
+    { label: 'Market Brain', href: '/admin/brain', icon: 'brain' },
+    { label: 'Configuration', href: '/admin/config', icon: 'config' },
+  ],
 } as const
