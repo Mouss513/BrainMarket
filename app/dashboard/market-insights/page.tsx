@@ -93,6 +93,7 @@ export default function MarketInsightsPage() {
 
   useEffect(() => {
     async function fetchInsights() {
+      if (!supabase) return
       const { data, error } = await supabase
         .from('market_insights')
         .select('*')

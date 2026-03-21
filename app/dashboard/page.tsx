@@ -126,6 +126,7 @@ export default function DashboardOverview() {
   const [refreshing, setRefreshing] = useState(false)
 
   const fetchRecommendations = useCallback(async () => {
+    if (!supabase) return
     const { data, error } = await supabase
       .from('brain_recommendations')
       .select('*')
