@@ -1,14 +1,21 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import { MOCK_MARKET_INSIGHTS } from '@/lib/mock-data'
 import { APP_CONFIG } from '@/lib/config'
+import type { MarketInsight } from '@/types/database'
 
-function InsightCard({
-  insight,
-}: {
-  insight: (typeof MOCK_MARKET_INSIGHTS)[number]
-}) {
-  const pct = Math.round(insight.confidenceScore * 100)
+type InsightData =
+  | (MarketInsight & { locked: boolean })
+  | (typeof MOCK_MARKET_INSIGHTS)[number]
+
+function InsightCard({ insight }: { insight: InsightData }) {
+  const confidenceScore =
+    'confidence_score' in insight
+      ? insight.confidence_score
+      : insight.confidenceScore
+  const pct = Math.round(confidenceScore * 100)
 
   if (insight.locked) {
     return (
@@ -63,7 +70,11 @@ function InsightCard({
         </span>
         <span
           className={`text-xs ${
-            pct >= 85 ? 'text-green-400' : pct >= 70 ? 'text-amber-400' : 'text-gray-400'
+            pct >= 85
+              ? 'text-green-400'
+              : pct >= 70
+              ? 'text-amber-400'
+              : 'text-gray-400'
           }`}
         >
           {pct}% confiance
@@ -77,7 +88,34 @@ function InsightCard({
 
 export default function MarketInsightsPage() {
   const freeCount = APP_CONFIG.freePlan.insightsVisible
-  const totalCount = MOCK_MARKET_INSIGHTS.length
+  const [insights, setInsights] = useState<InsightData[]>(MOCK_MARKET_INSIGHTS)
+  const [totalCount, setTotalCount] = useState(MOCK_MARKET_INSIGHTS.length)
+
+  useEffect(() => {
+    async function fetchInsights() {
+      const { data, error } = await supabase
+        .from('market_insights')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (!error && data && data.length > 0) {
+        const rows = data as MarketInsight[]
+        const withLock: InsightData[] = rows.map((item, idx) => ({
+          id: item.id,
+          sector: item.sector,
+          insight: item.insight,
+          source: item.source,
+          confidence_score: item.confidence_score,
+          created_at: item.created_at,
+          locked: idx >= freeCount,
+        }))
+        setInsights(withLock)
+        setTotalCount(data.length)
+      }
+      // si erreur ou table vide → on garde le fallback mock
+    }
+    fetchInsights()
+  }, [freeCount])
 
   return (
     <div className="max-w-4xl">
@@ -94,7 +132,7 @@ export default function MarketInsightsPage() {
       </div>
 
       <div className="grid gap-4">
-        {MOCK_MARKET_INSIGHTS.map((insight) => (
+        {insights.map((insight) => (
           <InsightCard key={insight.id} insight={insight} />
         ))}
       </div>

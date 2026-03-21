@@ -1,10 +1,13 @@
 'use client'
 
+import { useEffect, useState, useCallback } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import {
   MOCK_METRICS,
   MOCK_ROAS_HISTORY,
   MOCK_RECOMMENDATIONS,
 } from '@/lib/mock-data'
+import type { BrainRecommendation } from '@/types/database'
 
 function MetricCard({
   label,
@@ -73,12 +76,12 @@ function RoasChart() {
   )
 }
 
-function RecommendationCard({
-  rec,
-}: {
-  rec: (typeof MOCK_RECOMMENDATIONS)[number]
-}) {
-  const pct = Math.round(rec.confidenceScore * 100)
+type RecData = BrainRecommendation | (typeof MOCK_RECOMMENDATIONS)[number]
+
+function RecommendationCard({ rec }: { rec: RecData }) {
+  const confidenceScore =
+    'confidence_score' in rec ? rec.confidence_score : rec.confidenceScore
+  const pct = Math.round(confidenceScore * 100)
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
@@ -117,6 +120,37 @@ function RecommendationCard({
 
 export default function DashboardOverview() {
   const m = MOCK_METRICS
+  const [recommendations, setRecommendations] = useState<RecData[]>(
+    MOCK_RECOMMENDATIONS
+  )
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchRecommendations = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('brain_recommendations')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (!error && data && data.length > 0) {
+      setRecommendations(data)
+    }
+    // si erreur ou table vide → on garde les données actuelles (mock ou dernière fetch)
+  }, [])
+
+  useEffect(() => {
+    fetchRecommendations()
+  }, [fetchRecommendations])
+
+  async function handleRefresh() {
+    setRefreshing(true)
+    try {
+      await fetch('/api/brain/refresh', { method: 'POST' })
+      await fetchRecommendations()
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   return (
     <div className="max-w-6xl">
@@ -145,15 +179,66 @@ export default function DashboardOverview() {
 
       {/* Recommendations */}
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <h3 className="text-lg font-semibold">Recommandations du Market Brain</h3>
-          <div className="flex items-center gap-1.5 text-xs text-green-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Actif
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold">
+              Recommandations du Market Brain
+            </h3>
+            <div className="flex items-center gap-1.5 text-xs text-green-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Actif
+            </div>
           </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {refreshing ? (
+              <>
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+                Analyse en cours…
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Rafraîchir le Brain
+              </>
+            )}
+          </button>
         </div>
         <div className="grid gap-3">
-          {MOCK_RECOMMENDATIONS.map((rec) => (
+          {recommendations.map((rec) => (
             <RecommendationCard key={rec.id} rec={rec} />
           ))}
         </div>
