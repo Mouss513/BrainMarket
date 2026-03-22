@@ -133,10 +133,13 @@ export default function DashboardOverview() {
       .order('created_at', { ascending: false })
       .limit(10)
 
-    if (!error && data && data.length > 0) {
+    if (error) {
+      console.error('[fetchRecommendations] Supabase error:', error)
+      return
+    }
+    if (data && data.length > 0) {
       setRecommendations(data)
     }
-    // si erreur ou table vide → on garde les données actuelles (mock ou dernière fetch)
   }, [])
 
   useEffect(() => {

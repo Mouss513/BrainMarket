@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { collectGlobalData, SECTORS } from './global-collector'
 import { createServerClient } from '@/lib/supabase/server'
-import type { GlobalCollectorData, GlobalInsight } from './types'
+import type { GlobalCollectorData, GlobalInsight, CompetitorAdSignal } from './types'
 
 // ============================================================
 // Global Brain — Analyse cross-secteur via Claude API
@@ -9,6 +9,16 @@ import type { GlobalCollectorData, GlobalInsight } from './types'
 // ============================================================
 
 const MODEL = 'claude-sonnet-4-20250514'
+
+function formatCompetitorAds(ads: CompetitorAdSignal[]): string {
+  if (ads.length === 0) return '(aucune donnée disponible)'
+  return ads
+    .map((a) => {
+      const adTexts = a.recentAds.map((r) => `  • "${r.text}" (lancée: ${r.startDate})`).join('\n')
+      return `- ${a.brand} — ${a.activeAdsCount} ads actives\n${adTexts}\n  Source: ${a.source}`
+    })
+    .join('\n')
+}
 
 function buildPrompt(data: GlobalCollectorData): string {
   return `Tu es le Market Brain de BrainMarket, un moteur d'intelligence publicitaire pour e-commerce.
@@ -40,6 +50,9 @@ ${data.crossSectorSignals
       `- [${s.sectors.join(' × ')}] ${s.signal} (force: ${s.strength}) — Source: ${s.source}`
   )
   .join('\n')}
+
+### Veille concurrentielle (Meta Ad Library)
+${formatCompetitorAds(data.competitorAds)}
 
 ## INSTRUCTIONS
 

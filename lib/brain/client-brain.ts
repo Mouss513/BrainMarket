@@ -132,7 +132,7 @@ export async function runClientBrain(
   // Stocker dans Supabase
   const supabase = createServerClient()
   const inserts = recommendations.map((rec) => ({
-    user_id: userId,
+    user_id: '00000000-0000-0000-0000-000000000001',
     title: rec.title,
     description: `${rec.description}\n\nAction: ${rec.action}\n\nRésultat attendu: ${rec.expectedResult}`,
     confidence_score: rec.confidenceScore / 100, // DB stocke 0-1

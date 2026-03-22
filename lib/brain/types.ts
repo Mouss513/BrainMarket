@@ -30,10 +30,23 @@ export interface CrossSectorSignal {
   collectedAt: string
 }
 
+export interface CompetitorAdSignal {
+  brand: string
+  sector: string
+  activeAdsCount: number
+  recentAds: {
+    text: string
+    startDate: string
+  }[]
+  source: string
+  collectedAt: string
+}
+
 export interface GlobalCollectorData {
   trends: TrendSignal[]
   adFormats: AdFormatSignal[]
   crossSectorSignals: CrossSectorSignal[]
+  competitorAds: CompetitorAdSignal[]
   collectedAt: string
 }
 
