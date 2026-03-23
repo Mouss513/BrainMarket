@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { runGlobalBrain } from '@/lib/brain/global-brain'
 import { runClientBrain } from '@/lib/brain/client-brain'
 import { createServerClient } from '@/lib/supabase/server'
 
 // ============================================================
 // POST /api/brain/refresh
-// Déclenche l'analyse depuis le dashboard (sans clé admin)
+// Déclenche l'analyse depuis le dashboard (session Clerk requise)
 // ============================================================
 
 const MOCK_CLIENT_IDS = ['user_orem_001']
 
 export async function POST() {
+  const { userId } = auth()
+  if (!userId) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
   console.log('[brain/refresh] START', new Date().toISOString())
   const errors: string[] = []
   const supabase = createServerClient()
