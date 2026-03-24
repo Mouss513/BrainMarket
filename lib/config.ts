@@ -43,7 +43,21 @@ export const APP_CONFIG = {
     { label: 'Campagnes', href: '/dashboard/campaigns', icon: 'campaigns' },
     { label: 'Produits', href: '/dashboard/products', icon: 'products' },
     { label: 'Market Insights', href: '/dashboard/market-insights', icon: 'insights' },
+    { label: 'Connexions', href: '/dashboard/connections', icon: 'connections' },
   ],
+
+  // OAuth (à configurer plus tard)
+  oauth: {
+    shopify: {
+      authUrl: 'https://{shop}.myshopify.com/admin/oauth/authorize',
+      scopes: 'read_products,read_orders,read_analytics',
+    },
+    meta: {
+      authUrl: 'https://www.facebook.com/v21.0/dialog/oauth',
+      scopes: 'ads_read,ads_management',
+    },
+  },
+
   // Admin
   adminEmail: 'cmouscio@gmail.com',
 
