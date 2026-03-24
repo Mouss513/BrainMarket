@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 
 type ConnectionStatus = 'disconnected' | 'connected' | 'error'
 
@@ -22,19 +24,25 @@ function StatusBadge({ status }: { status: ConnectionStatus }) {
   )
 }
 
-function ShopifyCard() {
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected')
-  const [shopUrl, setShopUrl] = useState('')
+function ShopifyCard({
+  initialStatus,
+  initialShopDomain,
+}: {
+  initialStatus: ConnectionStatus
+  initialShopDomain: string
+}) {
+  const [status, setStatus] = useState<ConnectionStatus>(initialStatus)
+  const [shopUrl, setShopUrl] = useState(initialShopDomain)
   const [loading, setLoading] = useState(false)
 
   function handleConnect() {
     if (!shopUrl.trim()) return
     setLoading(true)
-    // Simulation de connexion
-    setTimeout(() => {
-      setStatus('connected')
-      setLoading(false)
-    }, 1500)
+    // Redirige vers l'API OAuth Shopify
+    const domain = shopUrl
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '')
+    window.location.href = `/api/shopify/auth?shop=${encodeURIComponent(domain)}`
   }
 
   function handleDisconnect() {
@@ -86,7 +94,7 @@ function ShopifyCard() {
             disabled={loading || !shopUrl.trim()}
             className="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
           >
-            {loading ? 'Connexion...' : 'Connecter'}
+            {loading ? 'Redirection...' : 'Connecter'}
           </button>
         </div>
       )}
@@ -100,7 +108,7 @@ function MetaAdsCard() {
 
   function handleConnect() {
     setLoading(true)
-    // Simulation de connexion OAuth
+    // Simulation — Meta OAuth sera implémenté plus tard
     setTimeout(() => {
       setStatus('connected')
       setLoading(false)
@@ -170,6 +178,37 @@ function MetaAdsCard() {
 }
 
 export default function ConnectionsPage() {
+  const searchParams = useSearchParams()
+  const [shopifyStatus, setShopifyStatus] = useState<ConnectionStatus>('disconnected')
+  const [shopifyDomain, setShopifyDomain] = useState('')
+
+  const fetchConnections = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase
+      .from('connections')
+      .select('*')
+      .eq('platform', 'shopify')
+      .eq('status', 'active')
+      .limit(1)
+
+    if (data && data.length > 0) {
+      setShopifyStatus('connected')
+      setShopifyDomain((data[0] as Record<string, unknown>).shop_domain as string || '')
+    }
+  }, [])
+
+  useEffect(() => {
+    // Check URL params for OAuth callback result
+    const shopifyParam = searchParams.get('shopify')
+    if (shopifyParam === 'connected') {
+      setShopifyStatus('connected')
+    } else if (shopifyParam === 'error') {
+      setShopifyStatus('error')
+    }
+
+    fetchConnections()
+  }, [searchParams, fetchConnections])
+
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
@@ -179,8 +218,17 @@ export default function ConnectionsPage() {
         </p>
       </div>
 
+      {searchParams.get('shopify') === 'error' && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-400">
+            Erreur lors de la connexion Shopify ({searchParams.get('reason') || 'inconnue'}).
+            Vérifie l&apos;URL de ta boutique et réessaie.
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-4">
-        <ShopifyCard />
+        <ShopifyCard initialStatus={shopifyStatus} initialShopDomain={shopifyDomain} />
         <MetaAdsCard />
       </div>
 

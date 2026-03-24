@@ -1,5 +1,6 @@
 export type UserStatus = 'active' | 'blocked'
 export type CampaignStatus = 'active' | 'paused' | 'ended' | 'draft'
+export type ConnectionStatus = 'active' | 'expired' | 'revoked' | 'error'
 
 export interface Database {
   public: {
@@ -152,12 +153,48 @@ export interface Database {
           created_at?: string
         }
       }
+      connections: {
+        Row: {
+          id: string
+          user_id: string
+          platform: string
+          shop_domain: string | null
+          access_token_encrypted: string
+          scopes: string
+          status: ConnectionStatus
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          platform: string
+          shop_domain?: string | null
+          access_token_encrypted: string
+          scopes?: string
+          status?: ConnectionStatus
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          platform?: string
+          shop_domain?: string | null
+          access_token_encrypted?: string
+          scopes?: string
+          status?: ConnectionStatus
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
     Enums: {
       user_status: UserStatus
       campaign_status: CampaignStatus
+      connection_status: ConnectionStatus
     }
   }
 }
@@ -168,3 +205,4 @@ export type Campaign = Database['public']['Tables']['campaigns']['Row']
 export type Product = Database['public']['Tables']['products']['Row']
 export type BrainRecommendation = Database['public']['Tables']['brain_recommendations']['Row']
 export type MarketInsight = Database['public']['Tables']['market_insights']['Row']
+export type Connection = Database['public']['Tables']['connections']['Row']
