@@ -53,10 +53,12 @@ export class ShopifyClient {
     return data.products
   }
 
-  async getOrders(limit = 50): Promise<ShopifyOrder[]> {
-    const data = await this.request<{ orders: ShopifyOrder[] }>(
-      `/orders.json?limit=${limit}&status=any`
-    )
+  async getOrders(limit = 50, createdAtMin?: string): Promise<ShopifyOrder[]> {
+    let url = `/orders.json?limit=${limit}&status=any`
+    if (createdAtMin) {
+      url += `&created_at_min=${encodeURIComponent(createdAtMin)}`
+    }
+    const data = await this.request<{ orders: ShopifyOrder[] }>(url)
     return data.orders
   }
 
