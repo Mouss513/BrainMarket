@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
+import { clerkClient } from '@clerk/nextjs/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { encrypt } from '@/lib/encryption'
 import { nonces } from '@/lib/shopify/nonces'
@@ -97,7 +98,7 @@ export async function GET(req: NextRequest) {
   // Encrypt token
   const encryptedToken = encrypt(accessToken)
 
-  // Find user UUID from Clerk ID
+  // Find or create user in Supabase from Clerk ID
   const supabase = createServerClient()
   const { data: userData } = await supabase
     .from('users')
@@ -105,10 +106,35 @@ export async function GET(req: NextRequest) {
     .eq('clerk_id', clerkUserId)
     .single()
 
-  const userRow = userData as { id: string } | null
-  if (!userRow) {
-    console.error('[shopify/callback] User not found for clerk_id:', clerkUserId)
-    return NextResponse.redirect(`${appUrl}/dashboard/connections?shopify=error&reason=user_not_found`)
+  let userId: string
+  const existingUser = userData as { id: string } | null
+
+  if (existingUser) {
+    userId = existingUser.id
+  } else {
+    // User doesn't exist in Supabase yet — create from Clerk data
+    console.log(`[shopify/callback] User not found for clerk_id ${clerkUserId}, creating...`)
+    let email = 'unknown@brainmarket.app'
+    try {
+      const client = await clerkClient()
+      const clerkUser = await client.users.getUser(clerkUserId)
+      email = clerkUser.emailAddresses?.[0]?.emailAddress || email
+    } catch (err) {
+      console.error('[shopify/callback] Failed to fetch Clerk user:', err)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newUser, error: insertError } = await (supabase.from('users') as any)
+      .insert({ clerk_id: clerkUserId, email })
+      .select('id')
+      .single()
+
+    if (insertError || !newUser) {
+      console.error('[shopify/callback] Failed to create user:', insertError)
+      return NextResponse.redirect(`${appUrl}/dashboard/connections?shopify=error&reason=user_creation_failed`)
+    }
+    userId = (newUser as { id: string }).id
+    console.log(`[shopify/callback] Created user ${userId} for clerk_id ${clerkUserId}`)
   }
 
   // Upsert connection
@@ -116,7 +142,7 @@ export async function GET(req: NextRequest) {
   const { error: upsertError } = await (supabase.from('connections') as any)
     .upsert(
       {
-        user_id: userRow.id,
+        user_id: userId,
         platform: 'shopify',
         shop_domain: shop,
         access_token_encrypted: encryptedToken,
@@ -132,6 +158,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${appUrl}/dashboard/connections?shopify=error&reason=db_error`)
   }
 
-  console.log(`[shopify/callback] Connected ${shop} for user ${userRow.id}`)
+  console.log(`[shopify/callback] Connected ${shop} for user ${userId}`)
   return NextResponse.redirect(`${appUrl}/dashboard/connections?shopify=connected`)
 }
