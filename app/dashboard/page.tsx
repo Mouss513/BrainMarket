@@ -118,12 +118,52 @@ function RecommendationCard({ rec }: { rec: RecData }) {
   )
 }
 
+interface ShopifyMetrics {
+  revenue_30d: number
+  orders_count: number
+  average_order_value: number
+  top_products: { title: string; units_sold: number; revenue: number }[]
+  synced_at: string | null
+}
+
 export default function DashboardOverview() {
-  const m = MOCK_METRICS
+  const [metrics, setMetrics] = useState<{
+    roasGlobal: number
+    budgetTotal: number
+    revenusGeneres: number
+    cpmMoyen: number
+  }>(MOCK_METRICS)
+  const [shopifyData, setShopifyData] = useState<ShopifyMetrics | null>(null)
   const [recommendations, setRecommendations] = useState<RecData[]>(
     MOCK_RECOMMENDATIONS
   )
   const [refreshing, setRefreshing] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+
+  const fetchShopifyData = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase
+      .from('shopify_data')
+      .select('*')
+      .order('synced_at', { ascending: false })
+      .limit(1)
+
+    if (data && data.length > 0) {
+      const row = data[0] as Record<string, unknown>
+      const sd: ShopifyMetrics = {
+        revenue_30d: row.revenue_30d as number,
+        orders_count: row.orders_count as number,
+        average_order_value: row.average_order_value as number,
+        top_products: row.top_products as ShopifyMetrics['top_products'],
+        synced_at: row.synced_at as string,
+      }
+      setShopifyData(sd)
+      setMetrics(prev => ({
+        ...prev,
+        revenusGeneres: sd.revenue_30d,
+      }))
+    }
+  }, [])
 
   const fetchRecommendations = useCallback(async () => {
     if (!supabase) return
@@ -144,7 +184,8 @@ export default function DashboardOverview() {
 
   useEffect(() => {
     fetchRecommendations()
-  }, [fetchRecommendations])
+    fetchShopifyData()
+  }, [fetchRecommendations, fetchShopifyData])
 
   async function handleRefresh() {
     setRefreshing(true)
@@ -156,25 +197,91 @@ export default function DashboardOverview() {
     }
   }
 
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/shopify/sync', { method: 'POST' })
+      if (res.ok) {
+        await fetchShopifyData()
+      }
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const m = metrics
+
   return (
     <div className="max-w-6xl">
-      <h2 className="text-2xl font-bold mb-6">Overview</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Overview</h2>
+        {shopifyData?.synced_at && (
+          <span className="text-xs text-gray-500">
+            Dernière synchro : {new Date(shopifyData.synced_at).toLocaleString('fr-FR')}
+          </span>
+        )}
+      </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <MetricCard label="Revenus 30j" value={m.revenusGeneres.toLocaleString('fr-FR')} suffix=" €" />
+        <MetricCard label="Commandes 30j" value={shopifyData?.orders_count ?? '—'} />
+        <MetricCard label="Panier moyen" value={shopifyData ? shopifyData.average_order_value.toLocaleString('fr-FR') : `${m.cpmMoyen}`} suffix=" €" />
         <MetricCard label="ROAS Global" value={`${m.roasGlobal}x`} />
-        <MetricCard
-          label="Budget dépensé"
-          value={m.budgetTotal.toLocaleString('fr-FR')}
-          suffix=" €"
-        />
-        <MetricCard
-          label="Revenus générés"
-          value={m.revenusGeneres.toLocaleString('fr-FR')}
-          suffix=" €"
-        />
-        <MetricCard label="CPM Moyen" value={`${m.cpmMoyen} €`} />
       </div>
+
+      {/* Sync button */}
+      <div className="mb-8">
+        <button
+          onClick={handleSync}
+          disabled={syncing}
+          className="flex items-center gap-2 px-4 py-2 bg-[#96bf48] hover:bg-[#7ea63d] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          {syncing ? (
+            <>
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Synchronisation Shopify…
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Synchroniser Shopify
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Top Products from Shopify */}
+      {shopifyData && shopifyData.top_products.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4">Top 5 produits (30 jours)</h3>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-800 text-gray-400">
+                  <th className="text-left px-5 py-3 font-medium">Produit</th>
+                  <th className="text-right px-5 py-3 font-medium">Ventes</th>
+                  <th className="text-right px-5 py-3 font-medium">Revenus</th>
+                </tr>
+              </thead>
+              <tbody>
+                {shopifyData.top_products.map((p, i) => (
+                  <tr key={i} className="border-b border-gray-800/50 last:border-0">
+                    <td className="px-5 py-3 text-white">{p.title}</td>
+                    <td className="px-5 py-3 text-right text-gray-300">{p.units_sold}</td>
+                    <td className="px-5 py-3 text-right text-gray-300">{p.revenue.toLocaleString('fr-FR')} €</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Chart */}
       <div className="mb-8">

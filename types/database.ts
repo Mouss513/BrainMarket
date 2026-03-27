@@ -153,6 +153,38 @@ export interface Database {
           created_at?: string
         }
       }
+      shopify_data: {
+        Row: {
+          id: string
+          user_id: string
+          revenue_30d: number
+          orders_count: number
+          average_order_value: number
+          top_products: { title: string; units_sold: number; revenue: number }[]
+          synced_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          revenue_30d: number
+          orders_count: number
+          average_order_value: number
+          top_products: { title: string; units_sold: number; revenue: number }[]
+          synced_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          revenue_30d?: number
+          orders_count?: number
+          average_order_value?: number
+          top_products?: { title: string; units_sold: number; revenue: number }[]
+          synced_at?: string
+          created_at?: string
+        }
+      }
       connections: {
         Row: {
           id: string
@@ -206,3 +238,4 @@ export type Product = Database['public']['Tables']['products']['Row']
 export type BrainRecommendation = Database['public']['Tables']['brain_recommendations']['Row']
 export type MarketInsight = Database['public']['Tables']['market_insights']['Row']
 export type Connection = Database['public']['Tables']['connections']['Row']
+export type ShopifyData = Database['public']['Tables']['shopify_data']['Row']
