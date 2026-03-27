@@ -139,6 +139,7 @@ export default function DashboardOverview() {
   )
   const [refreshing, setRefreshing] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
 
   const fetchShopifyData = useCallback(async () => {
     if (!supabase) return
@@ -199,11 +200,17 @@ export default function DashboardOverview() {
 
   async function handleSync() {
     setSyncing(true)
+    setSyncError(null)
     try {
       const res = await fetch('/api/shopify/sync', { method: 'POST' })
       if (res.ok) {
         await fetchShopifyData()
+      } else {
+        const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+        setSyncError(`${body.error}${body.details ? ` — ${body.details}` : ''}`)
       }
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : 'Erreur réseau')
     } finally {
       setSyncing(false)
     }
@@ -231,6 +238,11 @@ export default function DashboardOverview() {
       </div>
 
       {/* Sync button */}
+      {syncError && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-400">Erreur sync : {syncError}</p>
+        </div>
+      )}
       <div className="mb-8">
         <button
           onClick={handleSync}
