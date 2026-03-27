@@ -15,11 +15,15 @@ function buildPrompt(
   client: ClientData & { isDemo: boolean },
   globalInsights: GlobalInsight[]
 ): string {
+  const sectorSet = new Set([
+    client.sector.toLowerCase(),
+    ...client.referenceSectors.map(s => s.toLowerCase()),
+    'e-commerce',
+    'dtc',
+  ])
   const relevantInsights = globalInsights.filter(
-    (ins) =>
-      ins.sector === client.sector ||
-      ins.sector.toLowerCase().includes('e-commerce') ||
-      ins.sector.toLowerCase().includes('dtc')
+    (ins) => sectorSet.has(ins.sector.toLowerCase()) ||
+      client.referenceSectors.some(s => ins.sector.toLowerCase().includes(s.toLowerCase()))
   )
 
   const dataSource = client.isDemo
@@ -31,7 +35,9 @@ ${dataSource}
 ## PROFIL CLIENT
 
 Marque : ${client.brandName}
-Secteur : ${client.sector}
+Secteur principal : ${client.sector}
+Secteurs de référence : ${client.referenceSectors.join(', ')}
+Pays cibles : ${client.targetCountries.join(', ')}
 Revenu 30 jours : ${client.totalRevenue.toLocaleString('fr-FR')}€
 Budget pub 30 jours : ${client.totalBudget.toLocaleString('fr-FR')}€
 ROAS moyen : ${client.avgRoas.toFixed(2)}x
@@ -68,6 +74,9 @@ ${
 ## INSTRUCTIONS
 
 Génère 3 à 5 recommandations personnalisées en croisant les données client avec les insights marché.
+
+Priorité aux tendances dans les secteurs : ${client.referenceSectors.join(', ')}. Mentionne l'influence sectorielle dans chaque recommandation.
+Adapte les recommandations aux pays cibles du client : ${client.targetCountries.join(', ')}.
 
 Chaque recommandation doit être spécifique au client (mentionne ses campagnes et produits par nom).
 ${client.isDemo ? 'Précise que les recommandations sont "basées sur données démo" car les vraies données ne sont pas encore connectées.' : 'Base-toi sur les performances réelles pour des recommandations précises et chiffrées.'}

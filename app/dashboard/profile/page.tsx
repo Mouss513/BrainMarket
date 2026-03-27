@@ -14,27 +14,67 @@ interface Connection {
 interface UserPreferences {
   target_countries: string[]
   sector: string
+  reference_sectors: string[]
 }
 
-const COUNTRIES = [
-  { code: 'FR', label: 'France' },
-  { code: 'BE', label: 'Belgique' },
-  { code: 'CH', label: 'Suisse' },
-  { code: 'DE', label: 'Allemagne' },
-  { code: 'ES', label: 'Espagne' },
-  { code: 'IT', label: 'Italie' },
+// ── Country hierarchy ─────────────────────────────────────────
+const CONTINENTS: { label: string; countries: { code: string; label: string }[] }[] = [
+  {
+    label: 'Europe',
+    countries: [
+      { code: 'FR', label: 'France' },
+      { code: 'BE', label: 'Belgique' },
+      { code: 'CH', label: 'Suisse' },
+      { code: 'DE', label: 'Allemagne' },
+      { code: 'ES', label: 'Espagne' },
+      { code: 'IT', label: 'Italie' },
+      { code: 'UK', label: 'Royaume-Uni' },
+      { code: 'NL', label: 'Pays-Bas' },
+      { code: 'PT', label: 'Portugal' },
+    ],
+  },
+  {
+    label: 'Amerique du Nord',
+    countries: [
+      { code: 'US', label: 'Etats-Unis' },
+      { code: 'CA', label: 'Canada' },
+      { code: 'MX', label: 'Mexique' },
+    ],
+  },
+  {
+    label: 'Asie',
+    countries: [
+      { code: 'JP', label: 'Japon' },
+      { code: 'KR', label: 'Coree du Sud' },
+      { code: 'CN', label: 'Chine' },
+      { code: 'SG', label: 'Singapour' },
+    ],
+  },
+  {
+    label: 'Oceanie',
+    countries: [
+      { code: 'AU', label: 'Australie' },
+      { code: 'NZ', label: 'Nouvelle-Zelande' },
+    ],
+  },
 ]
 
-const SECTORS = [
-  'Streetwear',
-  'Mode',
-  'Beaute',
-  'Sport',
-  'Tech',
-  'Alimentation',
-  'Maison & Deco',
-  'Accessoires',
-  'Autre',
+const ALL_COUNTRY_CODES = CONTINENTS.flatMap(c => c.countries.map(co => co.code))
+
+// ── Sectors with emojis ───────────────────────────────────────
+const REFERENCE_SECTORS = [
+  { id: 'Streetwear', emoji: '🧢', label: 'Streetwear' },
+  { id: 'Mode premium', emoji: '👔', label: 'Mode premium' },
+  { id: 'Sneakers', emoji: '👟', label: 'Sneakers' },
+  { id: 'Art urbain', emoji: '🎨', label: 'Art urbain' },
+  { id: 'Lifestyle', emoji: '✨', label: 'Lifestyle' },
+  { id: 'Beauté', emoji: '💄', label: 'Beaute' },
+  { id: 'Sport', emoji: '⚽', label: 'Sport' },
+  { id: 'Tech', emoji: '💻', label: 'Tech' },
+  { id: 'Musique', emoji: '🎵', label: 'Musique' },
+  { id: 'Décoration', emoji: '🏠', label: 'Decoration' },
+  { id: 'Gastronomie', emoji: '🍽️', label: 'Gastronomie' },
+  { id: 'Voyage', emoji: '✈️', label: 'Voyage' },
 ]
 
 // ── Disconnect confirmation modal ──────────────────────────────
@@ -153,7 +193,7 @@ export default function ProfilePage() {
   const [emailSuccess, setEmailSuccess] = useState(false)
 
   // Preferences
-  const [prefs, setPrefs] = useState<UserPreferences>({ target_countries: ['FR'], sector: 'Streetwear' })
+  const [prefs, setPrefs] = useState<UserPreferences>({ target_countries: ['FR'], sector: 'Streetwear', reference_sectors: ['Streetwear'] })
   const [prefsSaving, setPrefsSaving] = useState(false)
   const [prefsSaved, setPrefsSaved] = useState(false)
 
@@ -175,13 +215,15 @@ export default function ProfilePage() {
     if (!supabase) return
     const { data } = await supabase
       .from('user_preferences')
-      .select('target_countries, sector')
+      .select('target_countries, sector, reference_sectors')
       .limit(1)
     if (data && data.length > 0) {
-      const row = data[0] as UserPreferences
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const row = data[0] as any
       setPrefs({
         target_countries: row.target_countries || ['FR'],
         sector: row.sector || 'Streetwear',
+        reference_sectors: row.reference_sectors || ['Streetwear'],
       })
     }
   }, [])
@@ -236,6 +278,7 @@ export default function ProfilePage() {
         {
           target_countries: prefs.target_countries,
           sector: prefs.sector,
+          reference_sectors: prefs.reference_sectors,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'user_id' }
@@ -256,6 +299,52 @@ export default function ProfilePage() {
           : [...prev.target_countries, code],
       }
     })
+  }
+
+  function toggleContinent(continentLabel: string) {
+    const continent = CONTINENTS.find(c => c.label === continentLabel)
+    if (!continent) return
+    const codes = continent.countries.map(c => c.code)
+    setPrefs(prev => {
+      const allSelected = codes.every(c => prev.target_countries.includes(c))
+      if (allSelected) {
+        return { ...prev, target_countries: prev.target_countries.filter(c => !codes.includes(c)) }
+      } else {
+        const merged = new Set([...prev.target_countries, ...codes])
+        return { ...prev, target_countries: Array.from(merged) }
+      }
+    })
+  }
+
+  function toggleWorld() {
+    setPrefs(prev => {
+      const allSelected = ALL_COUNTRY_CODES.every(c => prev.target_countries.includes(c))
+      return { ...prev, target_countries: allSelected ? [] : [...ALL_COUNTRY_CODES] }
+    })
+  }
+
+  function toggleSector(sectorId: string) {
+    setPrefs(prev => {
+      const has = prev.reference_sectors.includes(sectorId)
+      if (has) {
+        return { ...prev, reference_sectors: prev.reference_sectors.filter(s => s !== sectorId) }
+      }
+      if (prev.reference_sectors.length >= 5) return prev
+      return { ...prev, reference_sectors: [...prev.reference_sectors, sectorId] }
+    })
+  }
+
+  const isWorldSelected = ALL_COUNTRY_CODES.every(c => prefs.target_countries.includes(c))
+  function isContinentSelected(label: string) {
+    const continent = CONTINENTS.find(c => c.label === label)
+    return continent ? continent.countries.every(c => prefs.target_countries.includes(c.code)) : false
+  }
+  function isContinentPartial(label: string) {
+    const continent = CONTINENTS.find(c => c.label === label)
+    if (!continent) return false
+    const some = continent.countries.some(c => prefs.target_countries.includes(c.code))
+    const all = continent.countries.every(c => prefs.target_countries.includes(c.code))
+    return some && !all
   }
 
   // ── Delete account ─────────────────────────────────────────
@@ -458,49 +547,99 @@ export default function ProfilePage() {
       <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
         <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Preferences Market Brain</h3>
 
-        {/* Target countries */}
-        <div className="mb-5">
+        {/* Target countries — hierarchical */}
+        <div className="mb-6">
           <p className="text-[11px] tracking-[0.02em] text-[#555] mb-3">Pays cibles</p>
+
+          {/* World toggle */}
+          <button
+            onClick={toggleWorld}
+            className={`px-4 py-2 rounded-xl text-[12px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] mb-3 ${
+              isWorldSelected
+                ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
+                : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+            }`}
+          >
+            Monde entier
+          </button>
+
+          {/* Continents */}
+          <div className="space-y-3">
+            {CONTINENTS.map(continent => (
+              <div key={continent.label}>
+                <button
+                  onClick={() => toggleContinent(continent.label)}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium tracking-[0.04em] uppercase border transition-all duration-150 active:scale-[0.98] mb-2 ${
+                    isContinentSelected(continent.label)
+                      ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
+                      : isContinentPartial(continent.label)
+                        ? 'bg-[#c8a97e]/5 border-[#c8a97e]/15 text-[#c8a97e]/70'
+                        : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                  }`}
+                >
+                  {continent.label}
+                </button>
+                <div className="flex flex-wrap gap-1.5 ml-1">
+                  {continent.countries.map(c => {
+                    const active = prefs.target_countries.includes(c.code)
+                    return (
+                      <button
+                        key={c.code}
+                        onClick={() => toggleCountry(c.code)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] ${
+                          active
+                            ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
+                            : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Reference sectors — multi-select chips */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] tracking-[0.02em] text-[#555]">Secteurs de reference</p>
+            <span className="text-[10px] text-[#444]">{prefs.reference_sectors.length}/5</span>
+          </div>
           <div className="flex flex-wrap gap-2">
-            {COUNTRIES.map(c => {
-              const active = prefs.target_countries.includes(c.code)
+            {REFERENCE_SECTORS.map(s => {
+              const active = prefs.reference_sectors.includes(s.id)
+              const disabled = !active && prefs.reference_sectors.length >= 5
               return (
                 <button
-                  key={c.code}
-                  onClick={() => toggleCountry(c.code)}
+                  key={s.id}
+                  onClick={() => toggleSector(s.id)}
+                  disabled={disabled}
                   className={`px-3 py-1.5 rounded-xl text-[12px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] ${
                     active
                       ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
-                      : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                      : disabled
+                        ? 'bg-transparent border-[#1e1e1e] text-[#333] cursor-not-allowed'
+                        : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
                   }`}
                 >
-                  {c.label}
+                  {s.emoji} {s.label}
                 </button>
               )
             })}
           </div>
-        </div>
-
-        {/* Sector */}
-        <div className="mb-5">
-          <p className="text-[11px] tracking-[0.02em] text-[#555] mb-3">Secteur d&apos;activite</p>
-          <select
-            value={prefs.sector}
-            onChange={(e) => setPrefs(prev => ({ ...prev, sector: e.target.value }))}
-            className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl text-[13px] text-white focus:outline-none focus:border-[#c8a97e]/50 transition-colors duration-150 appearance-none"
-            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
-          >
-            {SECTORS.map(s => (
-              <option key={s} value={s} className="bg-[#111] text-white">{s}</option>
-            ))}
-          </select>
+          {prefs.reference_sectors.length === 0 && (
+            <p className="text-[11px] text-red-400/80 mt-2">Selectionnez au moins 1 secteur</p>
+          )}
         </div>
 
         {/* Save */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleSavePrefs}
-            disabled={prefsSaving}
+            disabled={prefsSaving || prefs.reference_sectors.length === 0}
             className="btn-primary text-[12px]"
           >
             {prefsSaving ? 'Sauvegarde...' : 'Sauvegarder'}

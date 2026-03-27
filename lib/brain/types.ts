@@ -61,6 +61,8 @@ export interface ClientData {
   userId: string
   brandName: string
   sector: string
+  referenceSectors: string[]
+  targetCountries: string[]
   campaigns: {
     name: string
     platform: string

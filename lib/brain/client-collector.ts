@@ -56,6 +56,8 @@ export async function collectClientData(userId: string): Promise<ClientData & { 
 
   let shopifyData: ShopifyDataRow | null = null
   let metaData: MetaDataRow | null = null
+  let referenceSectors: string[] = ['Streetwear']
+  let targetCountries: string[] = ['FR']
 
   if (supabaseUserId) {
     // Fetch Shopify data
@@ -80,6 +82,20 @@ export async function collectClientData(userId: string): Promise<ClientData & { 
 
     if (mdRows && mdRows.length > 0) {
       metaData = mdRows[0] as unknown as MetaDataRow
+    }
+
+    // Fetch user preferences (reference_sectors + target_countries)
+    const { data: prefRows } = await supabase
+      .from('user_preferences')
+      .select('reference_sectors, target_countries')
+      .eq('user_id', supabaseUserId)
+      .limit(1)
+
+    if (prefRows && prefRows.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pref = prefRows[0] as any
+      if (pref.reference_sectors?.length) referenceSectors = pref.reference_sectors
+      if (pref.target_countries?.length) targetCountries = pref.target_countries
     }
   }
 
@@ -134,6 +150,8 @@ export async function collectClientData(userId: string): Promise<ClientData & { 
     userId,
     brandName: hasRealData ? 'Mon Business' : 'Orem Studio (démo)',
     sector: 'Mode / Streetwear',
+    referenceSectors,
+    targetCountries,
     campaigns,
     products,
     totalRevenue,
