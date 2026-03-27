@@ -28,7 +28,7 @@ export async function GET() {
   const nonce = randomBytes(16).toString('hex')
   nonces.set(nonce, {
     clerkUserId: userId,
-    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
   })
 
   const authUrl =
