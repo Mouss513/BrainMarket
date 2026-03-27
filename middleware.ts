@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/", "/login(.*)", "/api/brain/refresh", "/api/brain/run", "/api/brain/cron", "/api/shopify/callback"]);
+const isPublicRoute = createRouteMatcher(["/", "/login(.*)", "/api/brain/refresh", "/api/brain/run", "/api/brain/cron", "/api/shopify/callback", "/api/shopify/debug"]);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 const ADMIN_EMAIL = "cmouscio@gmail.com";
