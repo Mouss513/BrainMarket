@@ -108,21 +108,18 @@ function ShopifyCard({
   )
 }
 
-function MetaAdsCard() {
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected')
+function MetaAdsCard({
+  status,
+  onDisconnect,
+}: {
+  status: ConnectionStatus
+  onDisconnect: () => void
+}) {
   const [loading, setLoading] = useState(false)
 
   function handleConnect() {
     setLoading(true)
-    // Simulation — Meta OAuth sera implémenté plus tard
-    setTimeout(() => {
-      setStatus('connected')
-      setLoading(false)
-    }, 2000)
-  }
-
-  function handleDisconnect() {
-    setStatus('disconnected')
+    window.location.href = '/api/meta/auth'
   }
 
   return (
@@ -149,7 +146,7 @@ function MetaAdsCard() {
             <span className="text-sm text-gray-300">Compte Meta connecté</span>
           </div>
           <button
-            onClick={handleDisconnect}
+            onClick={onDisconnect}
             className="text-sm text-gray-500 hover:text-red-400 transition-colors"
           >
             Déconnecter
@@ -167,7 +164,7 @@ function MetaAdsCard() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              Connexion...
+              Redirection...
             </>
           ) : (
             <>
@@ -187,30 +184,38 @@ export default function ConnectionsPage() {
   const searchParams = useSearchParams()
   const [shopifyStatus, setShopifyStatus] = useState<ConnectionStatus>('disconnected')
   const [shopifyDomain, setShopifyDomain] = useState('')
+  const [metaStatus, setMetaStatus] = useState<ConnectionStatus>('disconnected')
 
   const fetchConnections = useCallback(async () => {
     if (!supabase) return
     const { data } = await supabase
       .from('connections')
       .select('*')
-      .eq('platform', 'shopify')
       .eq('status', 'active')
-      .limit(1)
 
-    if (data && data.length > 0) {
-      setShopifyStatus('connected')
-      setShopifyDomain((data[0] as Record<string, unknown>).shop_domain as string || '')
+    if (data) {
+      const rows = data as Record<string, unknown>[]
+      const shopify = rows.find(r => r.platform === 'shopify')
+      if (shopify) {
+        setShopifyStatus('connected')
+        setShopifyDomain((shopify.shop_domain as string) || '')
+      }
+      const meta = rows.find(r => r.platform === 'meta')
+      if (meta) {
+        setMetaStatus('connected')
+      }
     }
   }, [])
 
   useEffect(() => {
-    // Check URL params for OAuth callback result
+    // Check URL params for OAuth callback results
     const shopifyParam = searchParams.get('shopify')
-    if (shopifyParam === 'connected') {
-      setShopifyStatus('connected')
-    } else if (shopifyParam === 'error') {
-      setShopifyStatus('error')
-    }
+    if (shopifyParam === 'connected') setShopifyStatus('connected')
+    else if (shopifyParam === 'error') setShopifyStatus('error')
+
+    const metaParam = searchParams.get('meta')
+    if (metaParam === 'connected') setMetaStatus('connected')
+    else if (metaParam === 'error') setMetaStatus('error')
 
     fetchConnections()
   }, [searchParams, fetchConnections])
@@ -241,6 +246,23 @@ export default function ConnectionsPage() {
         </div>
       )}
 
+      {searchParams.get('meta') === 'connected' && (
+        <div className="mb-4 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <p className="text-sm text-green-400">
+            Meta Ads connecté avec succès ! Tes campagnes seront synchronisées.
+          </p>
+        </div>
+      )}
+
+      {searchParams.get('meta') === 'error' && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-400">
+            Erreur lors de la connexion Meta ({searchParams.get('reason') || 'inconnue'}).
+            Réessaie ou vérifie les permissions.
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-4">
         <ShopifyCard
           status={shopifyStatus}
@@ -250,7 +272,10 @@ export default function ConnectionsPage() {
             setShopifyDomain('')
           }}
         />
-        <MetaAdsCard />
+        <MetaAdsCard
+          status={metaStatus}
+          onDisconnect={() => setMetaStatus('disconnected')}
+        />
       </div>
 
       <div className="mt-6 px-4 py-3 bg-gray-800/30 border border-gray-800 rounded-lg">

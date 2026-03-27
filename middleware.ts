@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/", "/login(.*)", "/api/brain/refresh", "/api/brain/run", "/api/brain/cron", "/api/shopify/callback", "/api/shopify/sync", "/api/shopify/debug"]);
+const isPublicRoute = createRouteMatcher(["/", "/login(.*)", "/api/brain/refresh", "/api/brain/run", "/api/brain/cron", "/api/shopify/callback", "/api/shopify/sync", "/api/shopify/debug", "/api/meta/auth", "/api/meta/callback", "/api/meta/sync"]);
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 const ADMIN_EMAIL = "cmouscio@gmail.com";
@@ -30,7 +30,7 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next|api/brain/run|api/brain/cron|api/shopify/callback|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api(?!/brain/run|/brain/cron|/shopify/callback)|trpc)(.*)",
+    "/((?!_next|api/brain/run|api/brain/cron|api/shopify/callback|api/meta/callback|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api(?!/brain/run|/brain/cron|/shopify/callback|/meta/callback)|trpc)(.*)",
   ],
 };
