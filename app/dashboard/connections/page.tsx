@@ -14,7 +14,7 @@ function StatusBadge({ status }: { status: ConnectionStatus }) {
   }
   const labels = {
     disconnected: 'Non connecté',
-    connected: 'Connecté',
+    connected: 'Connecté ✅',
     error: 'Erreur',
   }
   return (
@@ -25,15 +25,21 @@ function StatusBadge({ status }: { status: ConnectionStatus }) {
 }
 
 function ShopifyCard({
-  initialStatus,
-  initialShopDomain,
+  status,
+  shopDomain,
+  onDisconnect,
 }: {
-  initialStatus: ConnectionStatus
-  initialShopDomain: string
+  status: ConnectionStatus
+  shopDomain: string
+  onDisconnect: () => void
 }) {
-  const [status, setStatus] = useState<ConnectionStatus>(initialStatus)
-  const [shopUrl, setShopUrl] = useState(initialShopDomain)
+  const [shopUrl, setShopUrl] = useState(shopDomain)
   const [loading, setLoading] = useState(false)
+
+  // Sync shopUrl when shopDomain prop changes (e.g. after Supabase fetch)
+  useEffect(() => {
+    if (shopDomain) setShopUrl(shopDomain)
+  }, [shopDomain])
 
   function handleConnect() {
     if (!shopUrl.trim()) return
@@ -46,7 +52,7 @@ function ShopifyCard({
   }
 
   function handleDisconnect() {
-    setStatus('disconnected')
+    onDisconnect()
     setShopUrl('')
   }
 
@@ -218,6 +224,14 @@ export default function ConnectionsPage() {
         </p>
       </div>
 
+      {searchParams.get('shopify') === 'connected' && (
+        <div className="mb-4 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <p className="text-sm text-green-400">
+            Shopify connecté avec succès ! Tes données seront synchronisées automatiquement.
+          </p>
+        </div>
+      )}
+
       {searchParams.get('shopify') === 'error' && (
         <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
           <p className="text-sm text-red-400">
@@ -228,7 +242,14 @@ export default function ConnectionsPage() {
       )}
 
       <div className="grid gap-4">
-        <ShopifyCard initialStatus={shopifyStatus} initialShopDomain={shopifyDomain} />
+        <ShopifyCard
+          status={shopifyStatus}
+          shopDomain={shopifyDomain}
+          onDisconnect={() => {
+            setShopifyStatus('disconnected')
+            setShopifyDomain('')
+          }}
+        />
         <MetaAdsCard />
       </div>
 
