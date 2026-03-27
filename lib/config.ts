@@ -44,6 +44,7 @@ export const APP_CONFIG = {
     { label: 'Produits', href: '/dashboard/products', icon: 'products' },
     { label: 'Market Insights', href: '/dashboard/market-insights', icon: 'insights' },
     { label: 'Connexions', href: '/dashboard/connections', icon: 'connections' },
+    { label: 'Profil', href: '/dashboard/profile', icon: 'profile' },
   ],
 
   // OAuth (à configurer plus tard)
