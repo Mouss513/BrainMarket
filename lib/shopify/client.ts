@@ -4,20 +4,12 @@
 
 const SHOPIFY_API_VERSION = '2024-10'
 
-interface ShopifyProduct {
+export interface ShopifyProduct {
   id: number
   title: string
   product_type: string
   variants: { price: string; inventory_quantity: number }[]
   created_at: string
-}
-
-interface ShopifyOrder {
-  id: number
-  name: string
-  total_price: string
-  created_at: string
-  line_items: { title: string; quantity: number; price: string }[]
 }
 
 export class ShopifyClient {
@@ -46,6 +38,15 @@ export class ShopifyClient {
     return res.json() as Promise<T>
   }
 
+  // Safe request that returns null on error instead of throwing
+  private async safeRequest<T>(endpoint: string): Promise<T | null> {
+    try {
+      return await this.request<T>(endpoint)
+    } catch {
+      return null
+    }
+  }
+
   async getProducts(limit = 50): Promise<ShopifyProduct[]> {
     const data = await this.request<{ products: ShopifyProduct[] }>(
       `/products.json?limit=${limit}&status=active`
@@ -53,13 +54,18 @@ export class ShopifyClient {
     return data.products
   }
 
-  async getOrders(limit = 50, createdAtMin?: string): Promise<ShopifyOrder[]> {
-    let url = `/orders.json?limit=${limit}&status=any`
+  async getOrdersCount(createdAtMin?: string): Promise<number | null> {
+    let url = '/orders/count.json?status=any'
     if (createdAtMin) {
       url += `&created_at_min=${encodeURIComponent(createdAtMin)}`
     }
-    const data = await this.request<{ orders: ShopifyOrder[] }>(url)
-    return data.orders
+    const data = await this.safeRequest<{ count: number }>(url)
+    return data ? data.count : null
+  }
+
+  async getProductsCount(): Promise<number | null> {
+    const data = await this.safeRequest<{ count: number }>('/products/count.json')
+    return data ? data.count : null
   }
 
   async getShopInfo(): Promise<{ name: string; domain: string; email: string }> {

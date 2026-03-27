@@ -140,6 +140,7 @@ export default function DashboardOverview() {
   const [refreshing, setRefreshing] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
+  const [estimated, setEstimated] = useState(false)
 
   const fetchShopifyData = useCallback(async () => {
     if (!supabase) return
@@ -204,6 +205,8 @@ export default function DashboardOverview() {
     try {
       const res = await fetch('/api/shopify/sync', { method: 'POST' })
       if (res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setEstimated(!!body.estimated)
         await fetchShopifyData()
       } else {
         const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
@@ -223,9 +226,14 @@ export default function DashboardOverview() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Overview</h2>
         {shopifyData?.synced_at && (
-          <span className="text-xs text-gray-500">
-            Dernière synchro : {new Date(shopifyData.synced_at).toLocaleString('fr-FR')}
-          </span>
+          <div className="flex items-center gap-2">
+            {estimated && (
+              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Données estimées</span>
+            )}
+            <span className="text-xs text-gray-500">
+              Synchro : {new Date(shopifyData.synced_at).toLocaleString('fr-FR')}
+            </span>
+          </div>
         )}
       </div>
 
