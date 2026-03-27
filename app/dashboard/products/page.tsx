@@ -51,11 +51,11 @@ export default function ProductsPage() {
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-light tracking-wide text-white">Produits</h2>
+          <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Produits</h2>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-[13px] text-[#888]">{products.length} produits</span>
             {!isRealData && (
-              <span className="text-[10px] uppercase tracking-[0.08em] text-[#555] bg-[#1e1e1e] px-2 py-0.5 rounded">Donnees demo</span>
+              <span className="text-[10px] tracking-[0.02em] text-[#555] bg-[#1e1e1e] px-2 py-0.5 rounded-lg">Donnees demo</span>
             )}
           </div>
         </div>
@@ -63,18 +63,18 @@ export default function ProductsPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-3">Revenus totaux</p>
-          <p className="text-3xl font-light text-white">{totalRevenue.toLocaleString('fr-FR')} <span className="text-lg text-[#888]">€</span></p>
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+          <p className="text-[11px] tracking-[0.02em] text-[#888] mb-3">Revenus totaux</p>
+          <p className="text-3xl font-light text-white nums">{totalRevenue.toLocaleString('fr-FR')} <span className="text-base text-[#555]">€</span></p>
         </div>
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-3">Unites vendues</p>
-          <p className="text-3xl font-light text-white">{totalUnits.toLocaleString('fr-FR')}</p>
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+          <p className="text-[11px] tracking-[0.02em] text-[#888] mb-3">Unites vendues</p>
+          <p className="text-3xl font-light text-white nums">{totalUnits.toLocaleString('fr-FR')}</p>
         </div>
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-3">Prix moyen / unite</p>
-          <p className="text-3xl font-light text-white">
-            {totalUnits > 0 ? Math.round(totalRevenue / totalUnits).toLocaleString('fr-FR') : '—'} <span className="text-lg text-[#888]">€</span>
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+          <p className="text-[11px] tracking-[0.02em] text-[#888] mb-3">Prix moyen / unite</p>
+          <p className="text-3xl font-light text-white nums">
+            {totalUnits > 0 ? Math.round(totalRevenue / totalUnits).toLocaleString('fr-FR') : '—'} <span className="text-base text-[#555]">€</span>
           </p>
         </div>
       </div>
@@ -86,28 +86,28 @@ export default function ProductsPage() {
           return (
             <div
               key={i}
-              className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5"
+              className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-sm text-white">{p.name}</h3>
+                  <h3 className="text-[14px] font-medium text-white tracking-[0.02em]">{p.name}</h3>
                   <span className="text-[11px] text-[#555]">{p.category}</span>
                 </div>
-                <span className="text-[10px] uppercase tracking-[0.08em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded">
+                <span className="text-[10px] tracking-[0.02em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded-lg">
                   {revenueShare}% du CA
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.1em] text-[#555]">Revenus</p>
-                  <p className="text-xl font-light text-white mt-1">
+                  <p className="text-[11px] tracking-[0.02em] text-[#555]">Revenus</p>
+                  <p className="text-xl font-light text-white mt-1 nums">
                     {p.revenue.toLocaleString('fr-FR')} €
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.1em] text-[#555]">Unites vendues</p>
-                  <p className="text-xl font-light text-white mt-1">
+                  <p className="text-[11px] tracking-[0.02em] text-[#555]">Unites vendues</p>
+                  <p className="text-xl font-light text-white mt-1 nums">
                     {p.unitsSold}
                   </p>
                 </div>
@@ -116,7 +116,7 @@ export default function ProductsPage() {
               {/* Revenue bar */}
               <div className="w-full bg-[#1e1e1e] rounded-full h-1">
                 <div
-                  className="bg-[#c8a97e] h-1 rounded-full transition-all"
+                  className="bg-[#c8a97e] h-1 rounded-full transition-all duration-150"
                   style={{ width: `${revenueShare}%` }}
                 />
               </div>

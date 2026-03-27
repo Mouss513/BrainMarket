@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Primary button — warm sable, Apple-style relief */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-2.5
+           bg-[#f5f0e8] text-[#0a0a0a]
+           text-[13px] font-medium tracking-[0.02em]
+           rounded-xl
+           shadow-[0_1px_3px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]
+           transition-all duration-150 ease-out
+           hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(0,0,0,0.4),0_2px_4px_rgba(0,0,0,0.3)]
+           active:translate-y-0 active:scale-[0.98] active:shadow-[0_1px_2px_rgba(0,0,0,0.3)]
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)] disabled:active:scale-100;
+  }
+
+  /* Glass button — glassmorphism secondary */
+  .btn-glass {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-2.5
+           bg-white/[0.07] text-white/90
+           text-[13px] font-normal tracking-[0.02em]
+           rounded-xl
+           border border-white/[0.12]
+           backdrop-blur-md
+           shadow-[0_1px_3px_rgba(0,0,0,0.2)]
+           transition-all duration-150 ease-out
+           hover:-translate-y-[1px] hover:bg-white/[0.12] hover:border-white/[0.2] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]
+           active:translate-y-0 active:scale-[0.98] active:shadow-[0_1px_2px_rgba(0,0,0,0.2)]
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-white/[0.07] disabled:hover:shadow-[0_1px_3px_rgba(0,0,0,0.2)] disabled:active:scale-100;
+  }
+
+  /* Tabular nums for financial data */
+  .nums {
+    font-variant-numeric: tabular-nums;
+  }
+}

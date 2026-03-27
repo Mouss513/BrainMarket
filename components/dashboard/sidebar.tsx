@@ -40,10 +40,10 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-60 bg-[#080808] border-r border-[#1a1a1a] flex flex-col">
       {/* Logo */}
       <div className="px-5 py-6 border-b border-[#1a1a1a]">
-        <h1 className="text-base font-light tracking-[0.15em] uppercase text-[#c8a97e]">
+        <h1 className="text-[15px] font-medium tracking-[0.12em] uppercase text-[#c8a97e]">
           {APP_CONFIG.name}
         </h1>
-        <p className="text-[11px] text-[#555] mt-1 tracking-wide">Orem Studio</p>
+        <p className="text-[11px] text-[#555] mt-1 tracking-[0.02em]">Orem Studio</p>
       </div>
 
       {/* Nav */}
@@ -58,10 +58,10 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] tracking-wide transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] tracking-[0.02em] transition-all duration-150 ${
                 isActive
                   ? 'bg-[#c8a97e]/10 text-[#c8a97e]'
-                  : 'text-[#888] hover:text-white hover:bg-[#2a2a2a]'
+                  : 'text-[#888] hover:text-white hover:bg-white/[0.05]'
               }`}
             >
               {icons[item.icon]}
@@ -72,22 +72,22 @@ export default function Sidebar() {
       </nav>
 
       {/* Brain status */}
-      <div className="px-4 py-3 mx-3 mb-3 rounded-lg bg-[#111]/50 border border-[#1e1e1e]">
+      <div className="px-4 py-3 mx-3 mb-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[11px] uppercase tracking-[0.08em] text-[#888]">Market Brain actif</span>
+          <span className="text-[11px] tracking-[0.02em] text-[#888]">Market Brain actif</span>
         </div>
-        <p className="text-[11px] text-[#555] mt-1">Dernière analyse il y a 2h</p>
+        <p className="text-[11px] text-[#555] mt-1 leading-relaxed">Derniere analyse il y a 2h</p>
       </div>
 
       {/* Sign out */}
       <div className="px-3 pb-4">
         <SignOutButton>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#555] hover:text-[#888] hover:bg-[#2a2a2a] transition-colors">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-[#555] hover:text-[#888] hover:bg-white/[0.05] transition-all duration-150 active:scale-[0.98]">
             <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
             </svg>
-            Se déconnecter
+            Se deconnecter
           </button>
         </SignOutButton>
       </div>

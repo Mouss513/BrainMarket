@@ -136,13 +136,13 @@ export default function CampaignsPage() {
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-light tracking-wide text-white">Campagnes</h2>
+          <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Campagnes</h2>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-[13px] text-[#888]">
               {campaigns.length} campagne{campaigns.length > 1 ? 's' : ''}
             </span>
             {!isRealData && (
-              <span className="text-[10px] uppercase tracking-[0.08em] text-[#555] bg-[#1e1e1e] px-2 py-0.5 rounded">Donnees demo</span>
+              <span className="text-[10px] tracking-[0.02em] text-[#555] bg-[#1e1e1e] px-2 py-0.5 rounded-lg">Donnees demo</span>
             )}
             {syncedAt && (
               <span className="text-[11px] text-[#555]">
@@ -154,7 +154,7 @@ export default function CampaignsPage() {
         <button
           onClick={handleSync}
           disabled={syncing}
-          className="flex items-center gap-2 px-5 py-2.5 border border-[#c8a97e] text-[#c8a97e] hover:bg-[#c8a97e] hover:text-black disabled:opacity-50 disabled:cursor-not-allowed text-[13px] tracking-wide rounded-lg transition-all"
+          className="btn-glass"
         >
           {syncing ? (
             <>
@@ -176,29 +176,29 @@ export default function CampaignsPage() {
       </div>
 
       {syncError && (
-        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-lg">
-          <p className="text-sm text-red-400">Erreur sync : {syncError}</p>
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+          <p className="text-[13px] text-red-400 leading-[1.6]">Erreur sync : {syncError}</p>
         </div>
       )}
 
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl overflow-hidden">
+        <table className="w-full text-[13px]">
           <thead>
             <tr className="border-b border-[#1e1e1e]">
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Campagne</th>
-              <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Plateforme</th>
-              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Depense</th>
-              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">ROAS</th>
-              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">CTR</th>
-              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">CPM</th>
-              <th className="text-center px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Statut</th>
+              <th className="text-left px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Campagne</th>
+              <th className="text-left px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Plateforme</th>
+              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Depense</th>
+              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">ROAS</th>
+              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">CTR</th>
+              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">CPM</th>
+              <th className="text-center px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Statut</th>
             </tr>
           </thead>
           <tbody>
             {campaigns.map((c, i) => (
               <tr
                 key={c.id}
-                className={`border-b border-[#1e1e1e]/50 last:border-0 hover:bg-[#2a2a2a]/30 transition-colors ${
+                className={`border-b border-[#1e1e1e]/50 last:border-0 hover:bg-white/[0.02] transition-colors ${
                   i % 2 === 1 ? 'bg-[#0e0e0e]' : ''
                 }`}
               >
@@ -209,16 +209,16 @@ export default function CampaignsPage() {
                   </div>
                 </td>
                 <td className="px-5 py-4 text-[#888]">{c.platform}</td>
-                <td className="px-5 py-4 text-right text-white">
+                <td className="px-5 py-4 text-right text-white nums">
                   {c.budget.toLocaleString('fr-FR')} €
                 </td>
-                <td className={`px-5 py-4 text-right font-light text-lg ${roasColor(c.roas)}`}>
+                <td className={`px-5 py-4 text-right font-light text-lg nums ${roasColor(c.roas)}`}>
                   {c.status === 'draft' ? '—' : `${c.roas}x`}
                 </td>
-                <td className="px-5 py-4 text-right text-[#888]">
+                <td className="px-5 py-4 text-right text-[#888] nums">
                   {c.status === 'draft' ? '—' : `${c.ctr}%`}
                 </td>
-                <td className="px-5 py-4 text-right text-[#888]">
+                <td className="px-5 py-4 text-right text-[#888] nums">
                   {c.status === 'draft' ? '—' : `${c.cpm} €`}
                 </td>
                 <td className="px-5 py-4 text-center">{statusIndicator(c.status)}</td>

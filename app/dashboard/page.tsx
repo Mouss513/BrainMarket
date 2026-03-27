@@ -12,7 +12,6 @@ import type { BrainRecommendation } from '@/types/database'
 function MetricCard({
   label,
   value,
-  prefix,
   suffix,
 }: {
   label: string
@@ -21,12 +20,11 @@ function MetricCard({
   suffix?: string
 }) {
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
-      <p className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-3">{label}</p>
-      <p className="text-3xl font-light text-white">
-        {prefix}
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+      <p className="text-[11px] tracking-[0.02em] text-[#888] mb-3">{label}</p>
+      <p className="text-3xl font-light text-white nums">
         {value}
-        {suffix && <span className="text-lg text-[#888] ml-1">{suffix}</span>}
+        {suffix && <span className="text-base text-[#555] ml-1">{suffix}</span>}
       </p>
     </div>
   )
@@ -39,8 +37,8 @@ function RoasChart() {
   const range = max - min || 1
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
-      <h3 className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-6">
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+      <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-6">
         Evolution ROAS — 30 jours
       </h3>
       <div className="flex items-end gap-[3px] h-40">
@@ -61,7 +59,7 @@ function RoasChart() {
                 }`}
                 style={{ height: `${height}%` }}
               />
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#1e1e1e] text-[11px] text-white px-2 py-1 rounded whitespace-nowrap z-10">
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#1e1e1e] text-[11px] text-white px-2 py-1 rounded-lg whitespace-nowrap z-10 nums">
                 {d.day}: {d.roas}x
               </div>
             </div>
@@ -84,24 +82,24 @@ function RecommendationCard({ rec }: { rec: RecData }) {
   const pct = Math.round(confidenceScore * 100)
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             {rec.applied && (
-              <span className="text-[10px] uppercase tracking-[0.08em] bg-green-500/10 text-green-400 px-2 py-0.5 rounded">
+              <span className="text-[10px] tracking-[0.02em] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-lg">
                 Appliquee
               </span>
             )}
           </div>
-          <h4 className="text-sm font-normal text-white">{rec.title}</h4>
-          <p className="text-[13px] text-[#888] mt-1.5 leading-relaxed">
+          <h4 className="text-[14px] font-medium text-white tracking-[0.02em]">{rec.title}</h4>
+          <p className="text-[13px] text-[#888] mt-1.5 leading-[1.6]">
             {rec.description}
           </p>
         </div>
         <div className="flex-shrink-0 text-center">
           <div
-            className={`text-2xl font-light ${
+            className={`text-2xl font-light nums ${
               pct >= 85
                 ? 'text-green-400'
                 : pct >= 70
@@ -111,7 +109,7 @@ function RecommendationCard({ rec }: { rec: RecData }) {
           >
             {pct}%
           </div>
-          <div className="text-[10px] uppercase tracking-[0.08em] text-[#555]">confiance</div>
+          <div className="text-[10px] tracking-[0.02em] text-[#555]">confiance</div>
         </div>
       </div>
     </div>
@@ -248,11 +246,11 @@ export default function DashboardOverview() {
   return (
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-light tracking-wide text-white">Overview</h2>
+        <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Overview</h2>
         {shopifyData?.synced_at && (
           <div className="flex items-center gap-3">
             {estimated && (
-              <span className="text-[10px] uppercase tracking-[0.08em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded">Donnees estimees</span>
+              <span className="text-[10px] tracking-[0.02em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded-lg">Donnees estimees</span>
             )}
             <span className="text-[11px] text-[#555]">
               Synchro : {new Date(shopifyData.synced_at).toLocaleString('fr-FR')}
@@ -275,15 +273,15 @@ export default function DashboardOverview() {
 
       {/* Sync button */}
       {syncError && (
-        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-lg">
-          <p className="text-sm text-red-400">Erreur sync : {syncError}</p>
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+          <p className="text-[13px] text-red-400 leading-[1.6]">Erreur sync : {syncError}</p>
         </div>
       )}
       <div className="mb-8">
         <button
           onClick={handleSync}
           disabled={syncing}
-          className="flex items-center gap-2 px-5 py-2.5 border border-[#c8a97e] text-[#c8a97e] hover:bg-[#c8a97e] hover:text-black disabled:opacity-50 disabled:cursor-not-allowed text-[13px] tracking-wide rounded-lg transition-all"
+          className="btn-glass"
         >
           {syncing ? (
             <>
@@ -307,22 +305,22 @@ export default function DashboardOverview() {
       {/* Top Products from Shopify */}
       {shopifyData && shopifyData.top_products.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-4">Top 5 produits (30 jours)</h3>
-          <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
+          <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Top 5 produits (30 jours)</h3>
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl overflow-hidden">
+            <table className="w-full text-[13px]">
               <thead>
                 <tr className="border-b border-[#1e1e1e]">
-                  <th className="text-left px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Produit</th>
-                  <th className="text-right px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Ventes</th>
-                  <th className="text-right px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Revenus</th>
+                  <th className="text-left px-5 py-3 text-[11px] tracking-[0.02em] text-[#888] font-normal">Produit</th>
+                  <th className="text-right px-5 py-3 text-[11px] tracking-[0.02em] text-[#888] font-normal">Ventes</th>
+                  <th className="text-right px-5 py-3 text-[11px] tracking-[0.02em] text-[#888] font-normal">Revenus</th>
                 </tr>
               </thead>
               <tbody>
                 {shopifyData.top_products.map((p, i) => (
-                  <tr key={i} className="border-b border-[#1e1e1e]/50 last:border-0 hover:bg-[#2a2a2a]/30 transition-colors">
+                  <tr key={i} className="border-b border-[#1e1e1e]/50 last:border-0 hover:bg-white/[0.02] transition-colors">
                     <td className="px-5 py-3.5 text-white">{p.title}</td>
-                    <td className="px-5 py-3.5 text-right text-[#888]">{p.units_sold}</td>
-                    <td className="px-5 py-3.5 text-right text-[#888]">{p.revenue.toLocaleString('fr-FR')} €</td>
+                    <td className="px-5 py-3.5 text-right text-[#888] nums">{p.units_sold}</td>
+                    <td className="px-5 py-3.5 text-right text-[#888] nums">{p.revenue.toLocaleString('fr-FR')} €</td>
                   </tr>
                 ))}
               </tbody>
@@ -340,7 +338,7 @@ export default function DashboardOverview() {
       <div>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <h3 className="text-[11px] uppercase tracking-[0.1em] text-[#888]">
+            <h3 className="text-[14px] font-medium tracking-[0.02em] text-white">
               Recommandations du Market Brain
             </h3>
             <div className="flex items-center gap-1.5">
@@ -351,45 +349,20 @@ export default function DashboardOverview() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#c8a97e] hover:bg-[#b89a6f] disabled:opacity-50 disabled:cursor-not-allowed text-black text-[13px] tracking-wide font-medium rounded-lg transition-colors"
+            className="btn-primary"
           >
             {refreshing ? (
               <>
-                <svg
-                  className="w-4 h-4 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 Analyse en cours…
               </>
             ) : (
               <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 Rafraichir le Brain
               </>
