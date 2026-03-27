@@ -190,7 +190,6 @@ export const MOCK_MARKET_INSIGHTS = [
       'Les marques streetwear qui utilisent des creatives "behind the scenes" (production, packing) voient un CTR moyen de 3.1% vs 1.7% pour les visuels produit classiques.',
     source: 'Analyse de 240 campagnes Meta Ads streetwear FR — Mars 2026',
     confidenceScore: 0.91,
-    locked: false,
   },
   {
     id: '2',
@@ -199,7 +198,6 @@ export const MOCK_MARKET_INSIGHTS = [
       'Le CPM moyen sur Meta Ads pour la mode en France a baissé de 12% en mars, probablement lié à la baisse de concurrence post-soldes. Fenêtre d\'opportunité pour scaler.',
     source: 'Données agrégées Meta Ads FR — T1 2026',
     confidenceScore: 0.85,
-    locked: false,
   },
   {
     id: '3',
@@ -208,7 +206,6 @@ export const MOCK_MARKET_INSIGHTS = [
       'Corteiz a généré +320% de trafic organique sur son dernier drop "Rules The World" en combinant teasing Telegram + accès par mot de passe sur le site. Le paid media représentait moins de 15% de leur acquisition.',
     source: 'Analyse concurrentielle streetwear FR — Mars 2026',
     confidenceScore: 0.88,
-    locked: false,
   },
   {
     id: '4',
@@ -217,7 +214,6 @@ export const MOCK_MARKET_INSIGHTS = [
       'Davril Supply maintient un ROAS moyen de 4.8x sur Meta en ciblant exclusivement les 18-25 ans masculins en Île-de-France et Lyon. Leur AOV est passé de 55€ à 72€ après introduction d\'un bundle hoodie + cargo.',
     source: 'Benchmark marques streetwear indépendantes FR — T1 2026',
     confidenceScore: 0.82,
-    locked: true,
   },
   {
     id: '5',
@@ -226,7 +222,6 @@ export const MOCK_MARKET_INSIGHTS = [
       'Amoses a multiplié son CA par 2.5x en 6 mois en passant de Meta-only à une stratégie TikTok Ads + UGC. Leur CPA a baissé de 38% avec des créatives filmées au smartphone par des micro-influenceurs (5-15k abonnés).',
     source: 'Veille concurrentielle streetwear France — 45 marques suivies',
     confidenceScore: 0.79,
-    locked: true,
   },
   {
     id: '6',
@@ -235,7 +230,6 @@ export const MOCK_MARKET_INSIGHTS = [
       'Les marques DTC avec un AOV entre 50-80€ obtiennent le meilleur ROAS en ciblant les 18-24 ans avec du contenu UGC sur Instagram Reels. Le format 9:16 surperforme de 2.3x.',
     source: 'Benchmark DTC France — 847 marques analysées',
     confidenceScore: 0.78,
-    locked: true,
   },
   {
     id: '7',
@@ -244,6 +238,5 @@ export const MOCK_MARKET_INSIGHTS = [
       'Les campagnes de pre-launch avec compte à rebours sur landing page convertissent 4.7x mieux que les campagnes de lancement direct pour les drops limités.',
     source: 'Étude sneakers/streetwear EU — 120 drops analysés',
     confidenceScore: 0.82,
-    locked: true,
   },
 ]
