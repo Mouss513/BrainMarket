@@ -167,6 +167,30 @@ export default function DashboardOverview() {
     }
   }, [])
 
+  const fetchMetaData = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase
+      .from('meta_data')
+      .select('*')
+      .order('synced_at', { ascending: false })
+      .limit(1)
+
+    if (data && data.length > 0) {
+      const row = data[0] as Record<string, unknown>
+      const totalSpend = row.total_spend as number
+      const avgCpm = row.avg_cpm as number
+      setMetrics(prev => {
+        const roas = totalSpend > 0 ? Math.round((prev.revenusGeneres / totalSpend) * 100) / 100 : prev.roasGlobal
+        return {
+          ...prev,
+          budgetTotal: totalSpend,
+          cpmMoyen: avgCpm,
+          roasGlobal: roas,
+        }
+      })
+    }
+  }, [])
+
   const fetchRecommendations = useCallback(async () => {
     if (!supabase) return
     const { data, error } = await supabase
@@ -186,8 +210,8 @@ export default function DashboardOverview() {
 
   useEffect(() => {
     fetchRecommendations()
-    fetchShopifyData()
-  }, [fetchRecommendations, fetchShopifyData])
+    fetchShopifyData().then(() => fetchMetaData())
+  }, [fetchRecommendations, fetchShopifyData, fetchMetaData])
 
   async function handleRefresh() {
     setRefreshing(true)
@@ -240,9 +264,13 @@ export default function DashboardOverview() {
       {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <MetricCard label="Revenus 30j" value={m.revenusGeneres.toLocaleString('fr-FR')} suffix=" €" />
+        <MetricCard label="Budget pub 30j" value={m.budgetTotal.toLocaleString('fr-FR')} suffix=" €" />
         <MetricCard label="Commandes 30j" value={shopifyData?.orders_count ?? '—'} />
-        <MetricCard label="Panier moyen" value={shopifyData ? shopifyData.average_order_value.toLocaleString('fr-FR') : `${m.cpmMoyen}`} suffix=" €" />
         <MetricCard label="ROAS Global" value={`${m.roasGlobal}x`} />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <MetricCard label="Panier moyen" value={shopifyData ? shopifyData.average_order_value.toLocaleString('fr-FR') : '—'} suffix=" €" />
+        <MetricCard label="CPM Moyen" value={`${m.cpmMoyen}`} suffix=" €" />
       </div>
 
       {/* Sync button */}
