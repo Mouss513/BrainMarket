@@ -12,7 +12,7 @@ import type { ClientData, GlobalInsight, BrainRecommendation } from './types'
 const MODEL = 'claude-sonnet-4-20250514'
 
 function buildPrompt(
-  client: ClientData,
+  client: ClientData & { isDemo: boolean },
   globalInsights: GlobalInsight[]
 ): string {
   const relevantInsights = globalInsights.filter(
@@ -22,25 +22,30 @@ function buildPrompt(
       ins.sector.toLowerCase().includes('dtc')
   )
 
-  return `Tu es le Market Brain de BrainMarket. Tu génères des recommandations personnalisées pour un client e-commerce.
+  const dataSource = client.isDemo
+    ? '\n⚠️ NOTE : Ces données sont des données de démonstration. Mentionne "basé sur données démo" dans chaque recommandation.\n'
+    : '\n✅ Ces données proviennent des comptes réels du client (Shopify + Meta Ads).\n'
 
+  return `Tu es le Market Brain de BrainMarket. Tu génères des recommandations personnalisées pour un client e-commerce.
+${dataSource}
 ## PROFIL CLIENT
 
 Marque : ${client.brandName}
 Secteur : ${client.sector}
-Revenu total : ${client.totalRevenue.toLocaleString('fr-FR')}€
-Budget pub total : ${client.totalBudget.toLocaleString('fr-FR')}€
+Revenu 30 jours : ${client.totalRevenue.toLocaleString('fr-FR')}€
+Budget pub 30 jours : ${client.totalBudget.toLocaleString('fr-FR')}€
 ROAS moyen : ${client.avgRoas.toFixed(2)}x
+${client.totalRevenue > 0 && client.totalBudget > 0 ? `ROAS global calculé : ${(client.totalRevenue / client.totalBudget).toFixed(2)}x` : ''}
 
-### Campagnes actives
+### Campagnes actives (${client.campaigns.length})
 ${client.campaigns
   .map(
     (c) =>
-      `- "${c.name}" (${c.platform}) — Budget: ${c.budget}€, ROAS: ${c.roas}x, CTR: ${c.ctr}%, CPM: ${c.cpm}€, Statut: ${c.status}`
+      `- "${c.name}" (${c.platform}) — Dépense: ${c.budget}€, ROAS: ${c.roas}x, CTR: ${c.ctr}%, CPM: ${c.cpm}€, Statut: ${c.status}`
   )
   .join('\n')}
 
-### Produits
+### Produits (${client.products.length})
 ${client.products
   .map(
     (p) =>
@@ -65,6 +70,7 @@ ${
 Génère 3 à 5 recommandations personnalisées en croisant les données client avec les insights marché.
 
 Chaque recommandation doit être spécifique au client (mentionne ses campagnes et produits par nom).
+${client.isDemo ? 'Précise que les recommandations sont "basées sur données démo" car les vraies données ne sont pas encore connectées.' : 'Base-toi sur les performances réelles pour des recommandations précises et chiffrées.'}
 
 Réponds UNIQUEMENT en JSON valide, sans texte avant ou après :
 
@@ -81,9 +87,10 @@ Réponds UNIQUEMENT en JSON valide, sans texte avant ou après :
 ]
 
 Le score de confiance (0-100) dépend de :
-- La qualité des données client (campagnes actives avec historique = haute confiance)
+- La qualité des données client (données réelles = haute confiance, démo = confiance réduite)
 - La pertinence des insights marché croisés
 - La solidité de l'échantillon source
+${client.isDemo ? '- Limite les scores à 70 max car basé sur données démo' : ''}
 
 Priorise les recommandations à fort impact. Ne recommande rien de générique.`
 }
@@ -129,13 +136,25 @@ export async function runClientBrain(
     console.warn('Client Brain en mode dégradé:', validation.errors)
   }
 
-  // Stocker dans Supabase
+  // Resolve the Supabase user_id for storage
   const supabase = createServerClient()
+  let storageUserId = '00000000-0000-0000-0000-000000000001'
+
+  const { data: userRow } = await supabase
+    .from('users')
+    .select('id')
+    .eq('clerk_id', userId)
+    .single()
+
+  if (userRow) {
+    storageUserId = (userRow as { id: string }).id
+  }
+
   const inserts = recommendations.map((rec) => ({
-    user_id: '00000000-0000-0000-0000-000000000001',
+    user_id: storageUserId,
     title: rec.title,
     description: `${rec.description}\n\nAction: ${rec.action}\n\nRésultat attendu: ${rec.expectedResult}`,
-    confidence_score: rec.confidenceScore / 100, // DB stocke 0-1
+    confidence_score: rec.confidenceScore / 100,
     sector: rec.sector,
     applied: false,
   }))

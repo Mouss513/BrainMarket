@@ -7,34 +7,43 @@ import { createServerClient } from '@/lib/supabase/server'
 // ============================================================
 // POST /api/brain/refresh
 // Déclenche l'analyse depuis le dashboard (session Clerk requise)
+// Uses real client data from shopify_data + meta_data
 // ============================================================
 
-const MOCK_CLIENT_IDS = ['user_orem_001']
-
 export async function POST() {
-  const { userId } = auth()
-  if (!userId) {
+  const { userId: clerkUserId } = auth()
+  if (!clerkUserId) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
-  console.log('[brain/refresh] START', new Date().toISOString())
+  console.log('[brain/refresh] START for', clerkUserId)
   const errors: string[] = []
   const supabase = createServerClient()
 
-  // Supprimer les anciennes recommandations avant de régénérer
-  for (const clientId of MOCK_CLIENT_IDS) {
-    const { error: delError } = await supabase
-      .from('brain_recommendations')
-      .delete()
-      .eq('user_id', '00000000-0000-0000-0000-000000000001')
+  // Resolve Supabase user_id to delete old recs
+  const { data: userRow } = await supabase
+    .from('users')
+    .select('id')
+    .eq('clerk_id', clerkUserId)
+    .single()
 
-    if (delError) {
-      console.error(`[brain/refresh] Erreur suppression recs (${clientId}):`, delError)
-      errors.push(`Delete error (${clientId}): ${delError.message}`)
-    } else {
-      console.log(`[brain/refresh] Anciennes recs supprimées pour ${clientId}`)
-    }
+  const supabaseUserId = userRow
+    ? (userRow as { id: string }).id
+    : '00000000-0000-0000-0000-000000000001'
+
+  // Delete old recommendations for this user
+  const { error: delError } = await supabase
+    .from('brain_recommendations')
+    .delete()
+    .eq('user_id', supabaseUserId)
+
+  if (delError) {
+    console.error('[brain/refresh] Delete error:', delError)
+    errors.push(`Delete error: ${delError.message}`)
+  } else {
+    console.log(`[brain/refresh] Old recs deleted for ${supabaseUserId}`)
   }
 
+  // Global Brain
   let globalInsights: Awaited<ReturnType<typeof runGlobalBrain>> = []
   try {
     globalInsights = await runGlobalBrain()
@@ -45,17 +54,16 @@ export async function POST() {
     errors.push(msg)
   }
 
+  // Client Brain — pass the Clerk userId so it can fetch real data
   let totalRecs = 0
-  for (const clientId of MOCK_CLIENT_IDS) {
-    try {
-      const recs = await runClientBrain(clientId, globalInsights)
-      totalRecs += recs.length
-      console.log(`[brain/refresh] Client Brain OK (${clientId}) —`, recs.length, 'recs')
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error(`[brain/refresh] Client Brain ERROR (${clientId}) —`, msg)
-      errors.push(msg)
-    }
+  try {
+    const recs = await runClientBrain(clerkUserId, globalInsights)
+    totalRecs = recs.length
+    console.log(`[brain/refresh] Client Brain OK — ${recs.length} recs`)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[brain/refresh] Client Brain ERROR —', msg)
+    errors.push(msg)
   }
 
   const result = {

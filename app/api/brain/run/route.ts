@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runGlobalBrain } from '@/lib/brain/global-brain'
 import { runClientBrain } from '@/lib/brain/client-brain'
+import { createServerClient } from '@/lib/supabase/server'
 import type { BrainRunSummary } from '@/lib/brain/types'
 
 // ============================================================
 // POST /api/brain/run
 // Déclenche l'analyse complète : Global Brain + Client Brain
-// Protégée par BRAIN_ADMIN_KEY
+// Protégée par BRAIN_ADMIN_KEY — runs for all users with connections
 // ============================================================
-
-// Simulated client IDs — in production, fetch from users table
-const MOCK_CLIENT_IDS = ['user_orem_001']
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -23,7 +21,7 @@ export async function POST(req: NextRequest) {
   const startedAt = new Date().toISOString()
   const errors: string[] = []
 
-  // ---- NIVEAU 1 : Global Brain ----
+  // Global Brain
   let globalInsights: Awaited<ReturnType<typeof runGlobalBrain>> = []
   try {
     globalInsights = await runGlobalBrain()
@@ -32,15 +30,27 @@ export async function POST(req: NextRequest) {
     errors.push(`Global Brain error: ${msg}`)
   }
 
-  // ---- NIVEAU 2 : Client Brain (pour chaque client) ----
+  // Get all users with active connections (they have real data)
+  const supabase = createServerClient()
+  const { data: usersData } = await supabase
+    .from('users')
+    .select('id, clerk_id')
+
+  const users = (usersData || []) as { id: string; clerk_id: string }[]
+
+  // If no users, fall back to a mock run
+  const userIds = users.length > 0
+    ? users.map(u => u.clerk_id)
+    : ['user_orem_001']
+
   let totalClientRecs = 0
-  for (const clientId of MOCK_CLIENT_IDS) {
+  for (const uid of userIds) {
     try {
-      const recs = await runClientBrain(clientId, globalInsights)
+      const recs = await runClientBrain(uid, globalInsights)
       totalClientRecs += recs.length
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      errors.push(`Client Brain error (${clientId}): ${msg}`)
+      errors.push(`Client Brain error (${uid}): ${msg}`)
     }
   }
 
