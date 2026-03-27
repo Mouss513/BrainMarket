@@ -30,25 +30,45 @@ interface DisplayCampaign {
 
 function roasColor(roas: number) {
   if (roas >= 3) return 'text-green-400'
-  if (roas >= 1) return 'text-amber-400'
+  if (roas >= 1) return 'text-[#c8a97e]'
   return 'text-red-400'
 }
 
 function roasDot(roas: number) {
   if (roas >= 3) return 'bg-green-500'
-  if (roas >= 1) return 'bg-amber-500'
+  if (roas >= 1) return 'bg-[#c8a97e]'
   return 'bg-red-500'
 }
 
-function statusBadge(status: string) {
+function statusIndicator(status: string) {
   const s = status.toLowerCase()
   if (s === 'active')
-    return <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Active</span>
+    return (
+      <span className="flex items-center gap-1.5 text-[12px] text-[#888]">
+        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+        Active
+      </span>
+    )
   if (s === 'paused')
-    return <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">En pause</span>
+    return (
+      <span className="flex items-center gap-1.5 text-[12px] text-[#888]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#c8a97e]" />
+        En pause
+      </span>
+    )
   if (s === 'draft')
-    return <span className="text-xs bg-gray-700/50 text-gray-400 px-2 py-0.5 rounded-full">Brouillon</span>
-  return <span className="text-xs bg-gray-700/50 text-gray-500 px-2 py-0.5 rounded-full">{status}</span>
+    return (
+      <span className="flex items-center gap-1.5 text-[12px] text-[#555]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#555]" />
+        Brouillon
+      </span>
+    )
+  return (
+    <span className="flex items-center gap-1.5 text-[12px] text-[#555]">
+      <span className="w-1.5 h-1.5 rounded-full bg-[#555]" />
+      {status}
+    </span>
+  )
 }
 
 export default function CampaignsPage() {
@@ -114,18 +134,18 @@ export default function CampaignsPage() {
 
   return (
     <div className="max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold">Campagnes</h2>
-          <div className="flex items-center gap-3 mt-1">
-            <span className="text-sm text-gray-500">
+          <h2 className="text-2xl font-light tracking-wide text-white">Campagnes</h2>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-[13px] text-[#888]">
               {campaigns.length} campagne{campaigns.length > 1 ? 's' : ''}
             </span>
             {!isRealData && (
-              <span className="text-xs bg-gray-700/50 text-gray-400 px-2 py-0.5 rounded-full">Données démo</span>
+              <span className="text-[10px] uppercase tracking-[0.08em] text-[#555] bg-[#1e1e1e] px-2 py-0.5 rounded">Donnees demo</span>
             )}
             {syncedAt && (
-              <span className="text-xs text-gray-500">
+              <span className="text-[11px] text-[#555]">
                 Synchro : {new Date(syncedAt).toLocaleString('fr-FR')}
               </span>
             )}
@@ -134,7 +154,7 @@ export default function CampaignsPage() {
         <button
           onClick={handleSync}
           disabled={syncing}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 border border-[#c8a97e] text-[#c8a97e] hover:bg-[#c8a97e] hover:text-black disabled:opacity-50 disabled:cursor-not-allowed text-[13px] tracking-wide rounded-lg transition-all"
         >
           {syncing ? (
             <>
@@ -146,7 +166,7 @@ export default function CampaignsPage() {
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               Synchroniser Meta
@@ -156,50 +176,52 @@ export default function CampaignsPage() {
       </div>
 
       {syncError && (
-        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-lg">
           <p className="text-sm text-red-400">Erreur sync : {syncError}</p>
         </div>
       )}
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-gray-400 text-left">
-              <th className="px-5 py-3 font-medium">Campagne</th>
-              <th className="px-5 py-3 font-medium">Plateforme</th>
-              <th className="px-5 py-3 font-medium text-right">Dépense</th>
-              <th className="px-5 py-3 font-medium text-right">ROAS</th>
-              <th className="px-5 py-3 font-medium text-right">CTR</th>
-              <th className="px-5 py-3 font-medium text-right">CPM</th>
-              <th className="px-5 py-3 font-medium text-center">Statut</th>
+            <tr className="border-b border-[#1e1e1e]">
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Campagne</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Plateforme</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Depense</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">ROAS</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">CTR</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">CPM</th>
+              <th className="text-center px-5 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Statut</th>
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((c) => (
+            {campaigns.map((c, i) => (
               <tr
                 key={c.id}
-                className="border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors"
+                className={`border-b border-[#1e1e1e]/50 last:border-0 hover:bg-[#2a2a2a]/30 transition-colors ${
+                  i % 2 === 1 ? 'bg-[#0e0e0e]' : ''
+                }`}
               >
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${roasDot(c.roas)}`} />
-                    <span className="font-medium text-white">{c.name}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${roasDot(c.roas)}`} />
+                    <span className="text-white">{c.name}</span>
                   </div>
                 </td>
-                <td className="px-5 py-4 text-gray-400">{c.platform}</td>
+                <td className="px-5 py-4 text-[#888]">{c.platform}</td>
                 <td className="px-5 py-4 text-right text-white">
                   {c.budget.toLocaleString('fr-FR')} €
                 </td>
-                <td className={`px-5 py-4 text-right font-semibold ${roasColor(c.roas)}`}>
+                <td className={`px-5 py-4 text-right font-light text-lg ${roasColor(c.roas)}`}>
                   {c.status === 'draft' ? '—' : `${c.roas}x`}
                 </td>
-                <td className="px-5 py-4 text-right text-gray-300">
+                <td className="px-5 py-4 text-right text-[#888]">
                   {c.status === 'draft' ? '—' : `${c.ctr}%`}
                 </td>
-                <td className="px-5 py-4 text-right text-gray-300">
+                <td className="px-5 py-4 text-right text-[#888]">
                   {c.status === 'draft' ? '—' : `${c.cpm} €`}
                 </td>
-                <td className="px-5 py-4 text-center">{statusBadge(c.status)}</td>
+                <td className="px-5 py-4 text-center">{statusIndicator(c.status)}</td>
               </tr>
             ))}
           </tbody>
@@ -207,17 +229,17 @@ export default function CampaignsPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex gap-6 mt-4 text-xs text-gray-500">
+      <div className="flex gap-6 mt-4 text-[11px] text-[#555]">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-green-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
           ROAS &gt; 3x
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-amber-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#c8a97e]" />
           ROAS 1-3x
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-red-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
           ROAS &lt; 1x
         </div>
       </div>

@@ -21,12 +21,12 @@ function MetricCard({
   suffix?: string
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-      <p className="text-sm text-gray-400">{label}</p>
-      <p className="text-2xl font-bold mt-1">
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
+      <p className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-3">{label}</p>
+      <p className="text-3xl font-light text-white">
         {prefix}
         {value}
-        {suffix}
+        {suffix && <span className="text-lg text-[#888] ml-1">{suffix}</span>}
       </p>
     </div>
   )
@@ -39,9 +39,9 @@ function RoasChart() {
   const range = max - min || 1
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-      <h3 className="text-sm font-medium text-gray-400 mb-4">
-        Évolution ROAS — 30 jours
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
+      <h3 className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-6">
+        Evolution ROAS — 30 jours
       </h3>
       <div className="flex items-end gap-[3px] h-40">
         {data.map((d, i) => {
@@ -56,19 +56,19 @@ function RoasChart() {
               <div
                 className={`absolute bottom-0 w-full rounded-sm transition-colors ${
                   isGood
-                    ? 'bg-violet-600 group-hover:bg-violet-500'
-                    : 'bg-gray-700 group-hover:bg-gray-600'
+                    ? 'bg-[#c8a97e] group-hover:bg-[#d4b88a]'
+                    : 'bg-[#2a2a2a] group-hover:bg-[#3a3a3a]'
                 }`}
                 style={{ height: `${height}%` }}
               />
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-800 text-xs text-white px-2 py-1 rounded whitespace-nowrap z-10">
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#1e1e1e] text-[11px] text-white px-2 py-1 rounded whitespace-nowrap z-10">
                 {d.day}: {d.roas}x
               </div>
             </div>
           )
         })}
       </div>
-      <div className="flex justify-between mt-2 text-xs text-gray-600">
+      <div className="flex justify-between mt-3 text-[11px] text-[#555]">
         <span>{data[0].day}</span>
         <span>{data[data.length - 1].day}</span>
       </div>
@@ -84,34 +84,34 @@ function RecommendationCard({ rec }: { rec: RecData }) {
   const pct = Math.round(confidenceScore * 100)
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-lg p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             {rec.applied && (
-              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
-                Appliquée
+              <span className="text-[10px] uppercase tracking-[0.08em] bg-green-500/10 text-green-400 px-2 py-0.5 rounded">
+                Appliquee
               </span>
             )}
           </div>
-          <h4 className="text-sm font-medium text-white">{rec.title}</h4>
-          <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+          <h4 className="text-sm font-normal text-white">{rec.title}</h4>
+          <p className="text-[13px] text-[#888] mt-1.5 leading-relaxed">
             {rec.description}
           </p>
         </div>
         <div className="flex-shrink-0 text-center">
           <div
-            className={`text-lg font-bold ${
+            className={`text-2xl font-light ${
               pct >= 85
                 ? 'text-green-400'
                 : pct >= 70
-                ? 'text-amber-400'
-                : 'text-gray-400'
+                ? 'text-[#c8a97e]'
+                : 'text-[#888]'
             }`}
           >
             {pct}%
           </div>
-          <div className="text-xs text-gray-500">confiance</div>
+          <div className="text-[10px] uppercase tracking-[0.08em] text-[#555]">confiance</div>
         </div>
       </div>
     </div>
@@ -247,14 +247,14 @@ export default function DashboardOverview() {
 
   return (
     <div className="max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Overview</h2>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-light tracking-wide text-white">Overview</h2>
         {shopifyData?.synced_at && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {estimated && (
-              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Données estimées</span>
+              <span className="text-[10px] uppercase tracking-[0.08em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded">Donnees estimees</span>
             )}
-            <span className="text-xs text-gray-500">
+            <span className="text-[11px] text-[#555]">
               Synchro : {new Date(shopifyData.synced_at).toLocaleString('fr-FR')}
             </span>
           </div>
@@ -262,20 +262,20 @@ export default function DashboardOverview() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <MetricCard label="Revenus 30j" value={m.revenusGeneres.toLocaleString('fr-FR')} suffix=" €" />
-        <MetricCard label="Budget pub 30j" value={m.budgetTotal.toLocaleString('fr-FR')} suffix=" €" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <MetricCard label="Revenus 30j" value={m.revenusGeneres.toLocaleString('fr-FR')} suffix="€" />
+        <MetricCard label="Budget pub 30j" value={m.budgetTotal.toLocaleString('fr-FR')} suffix="€" />
         <MetricCard label="Commandes 30j" value={shopifyData?.orders_count ?? '—'} />
         <MetricCard label="ROAS Global" value={`${m.roasGlobal}x`} />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <MetricCard label="Panier moyen" value={shopifyData ? shopifyData.average_order_value.toLocaleString('fr-FR') : '—'} suffix=" €" />
-        <MetricCard label="CPM Moyen" value={`${m.cpmMoyen}`} suffix=" €" />
+        <MetricCard label="Panier moyen" value={shopifyData ? shopifyData.average_order_value.toLocaleString('fr-FR') : '—'} suffix="€" />
+        <MetricCard label="CPM Moyen" value={`${m.cpmMoyen}`} suffix="€" />
       </div>
 
       {/* Sync button */}
       {syncError && (
-        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-lg">
           <p className="text-sm text-red-400">Erreur sync : {syncError}</p>
         </div>
       )}
@@ -283,7 +283,7 @@ export default function DashboardOverview() {
         <button
           onClick={handleSync}
           disabled={syncing}
-          className="flex items-center gap-2 px-4 py-2 bg-[#96bf48] hover:bg-[#7ea63d] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 border border-[#c8a97e] text-[#c8a97e] hover:bg-[#c8a97e] hover:text-black disabled:opacity-50 disabled:cursor-not-allowed text-[13px] tracking-wide rounded-lg transition-all"
         >
           {syncing ? (
             <>
@@ -295,7 +295,7 @@ export default function DashboardOverview() {
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               Synchroniser Shopify
@@ -307,22 +307,22 @@ export default function DashboardOverview() {
       {/* Top Products from Shopify */}
       {shopifyData && shopifyData.top_products.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">Top 5 produits (30 jours)</h3>
-          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <h3 className="text-[11px] uppercase tracking-[0.1em] text-[#888] mb-4">Top 5 produits (30 jours)</h3>
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800 text-gray-400">
-                  <th className="text-left px-5 py-3 font-medium">Produit</th>
-                  <th className="text-right px-5 py-3 font-medium">Ventes</th>
-                  <th className="text-right px-5 py-3 font-medium">Revenus</th>
+                <tr className="border-b border-[#1e1e1e]">
+                  <th className="text-left px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Produit</th>
+                  <th className="text-right px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Ventes</th>
+                  <th className="text-right px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-[#888] font-normal">Revenus</th>
                 </tr>
               </thead>
               <tbody>
                 {shopifyData.top_products.map((p, i) => (
-                  <tr key={i} className="border-b border-gray-800/50 last:border-0">
-                    <td className="px-5 py-3 text-white">{p.title}</td>
-                    <td className="px-5 py-3 text-right text-gray-300">{p.units_sold}</td>
-                    <td className="px-5 py-3 text-right text-gray-300">{p.revenue.toLocaleString('fr-FR')} €</td>
+                  <tr key={i} className="border-b border-[#1e1e1e]/50 last:border-0 hover:bg-[#2a2a2a]/30 transition-colors">
+                    <td className="px-5 py-3.5 text-white">{p.title}</td>
+                    <td className="px-5 py-3.5 text-right text-[#888]">{p.units_sold}</td>
+                    <td className="px-5 py-3.5 text-right text-[#888]">{p.revenue.toLocaleString('fr-FR')} €</td>
                   </tr>
                 ))}
               </tbody>
@@ -338,20 +338,20 @@ export default function DashboardOverview() {
 
       {/* Recommendations */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-[11px] uppercase tracking-[0.1em] text-[#888]">
               Recommandations du Market Brain
             </h3>
-            <div className="flex items-center gap-1.5 text-xs text-green-400">
+            <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              Actif
+              <span className="text-[11px] text-green-400">Actif</span>
             </div>
           </div>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#c8a97e] hover:bg-[#b89a6f] disabled:opacity-50 disabled:cursor-not-allowed text-black text-[13px] tracking-wide font-medium rounded-lg transition-colors"
           >
             {refreshing ? (
               <>
@@ -383,7 +383,7 @@ export default function DashboardOverview() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                 >
                   <path
                     strokeLinecap="round"
@@ -391,7 +391,7 @@ export default function DashboardOverview() {
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
-                Rafraîchir le Brain
+                Rafraichir le Brain
               </>
             )}
           </button>
