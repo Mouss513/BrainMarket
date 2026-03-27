@@ -3,15 +3,78 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { supabase } from '@/lib/supabase/client'
-
-type ConnectionStatus = 'active' | 'inactive'
+import Link from 'next/link'
 
 interface Connection {
   platform: string
-  status: ConnectionStatus
+  status: string
   shop_domain?: string
 }
 
+interface UserPreferences {
+  target_countries: string[]
+  sector: string
+}
+
+const COUNTRIES = [
+  { code: 'FR', label: 'France' },
+  { code: 'BE', label: 'Belgique' },
+  { code: 'CH', label: 'Suisse' },
+  { code: 'DE', label: 'Allemagne' },
+  { code: 'ES', label: 'Espagne' },
+  { code: 'IT', label: 'Italie' },
+]
+
+const SECTORS = [
+  'Streetwear',
+  'Mode',
+  'Beaute',
+  'Sport',
+  'Tech',
+  'Alimentation',
+  'Maison & Deco',
+  'Accessoires',
+  'Autre',
+]
+
+// ── Disconnect confirmation modal ──────────────────────────────
+function DisconnectModal({
+  open,
+  platform,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean
+  platform: string
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[#111] border border-[#1e1e1e] rounded-xl p-6 w-full max-w-sm mx-4">
+        <h3 className="text-[16px] font-medium text-white tracking-[0.02em] mb-3">
+          Deconnecter {platform}
+        </h3>
+        <p className="text-[13px] text-[#888] leading-[1.6] mb-5">
+          Les donnees deja synchronisees resteront disponibles. Vous pourrez reconnecter a tout moment.
+        </p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="btn-glass flex-1">Annuler</button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-xl border border-red-500/20 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-all duration-150 hover:-translate-y-[1px] hover:bg-red-500/20 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:translate-y-0 active:scale-[0.98]"
+          >
+            Deconnecter
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Delete account modal ───────────────────────────────────────
 function DeleteAccountModal({
   open,
   onClose,
@@ -24,11 +87,7 @@ function DeleteAccountModal({
   deleting: boolean
 }) {
   const [input, setInput] = useState('')
-
-  useEffect(() => {
-    if (!open) setInput('')
-  }, [open])
-
+  useEffect(() => { if (!open) setInput('') }, [open])
   if (!open) return null
 
   return (
@@ -54,12 +113,7 @@ function DeleteAccountModal({
           />
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="btn-glass flex-1"
-          >
-            Annuler
-          </button>
+          <button onClick={onClose} className="btn-glass flex-1">Annuler</button>
           <button
             onClick={onConfirm}
             disabled={input !== 'SUPPRIMER' || deleting}
@@ -83,9 +137,27 @@ function DeleteAccountModal({
   )
 }
 
+// ── Main page ──────────────────────────────────────────────────
 export default function ProfilePage() {
   const { user, isLoaded } = useUser()
+
+  // Connections
   const [connections, setConnections] = useState<Connection[]>([])
+  const [disconnectTarget, setDisconnectTarget] = useState<string | null>(null)
+
+  // Email editing
+  const [editingEmail, setEditingEmail] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [emailSuccess, setEmailSuccess] = useState(false)
+
+  // Preferences
+  const [prefs, setPrefs] = useState<UserPreferences>({ target_countries: ['FR'], sector: 'Streetwear' })
+  const [prefsSaving, setPrefsSaving] = useState(false)
+  const [prefsSaved, setPrefsSaved] = useState(false)
+
+  // Delete account
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -96,16 +168,97 @@ export default function ProfilePage() {
       .from('connections')
       .select('platform, status, shop_domain')
       .eq('status', 'active')
+    if (data) setConnections(data as Connection[])
+  }, [])
 
-    if (data) {
-      setConnections(data as Connection[])
+  const fetchPreferences = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('target_countries, sector')
+      .limit(1)
+    if (data && data.length > 0) {
+      const row = data[0] as UserPreferences
+      setPrefs({
+        target_countries: row.target_countries || ['FR'],
+        sector: row.sector || 'Streetwear',
+      })
     }
   }, [])
 
   useEffect(() => {
     fetchConnections()
-  }, [fetchConnections])
+    fetchPreferences()
+  }, [fetchConnections, fetchPreferences])
 
+  // ── Email update via Clerk ─────────────────────────────────
+  async function handleEmailSave() {
+    if (!user || !newEmail.trim()) return
+    setEmailSaving(true)
+    setEmailError(null)
+    setEmailSuccess(false)
+    try {
+      const created = await user.createEmailAddress({ email: newEmail.trim() })
+      await created.prepareVerification({ strategy: 'email_code' })
+      setEmailSuccess(true)
+      setEditingEmail(false)
+      setNewEmail('')
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : 'Erreur lors de la modification')
+    } finally {
+      setEmailSaving(false)
+    }
+  }
+
+  // ── Disconnect platform ────────────────────────────────────
+  async function handleDisconnect() {
+    if (!supabase || !disconnectTarget) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from('connections')
+      .update({ status: 'inactive' })
+      .eq('platform', disconnectTarget)
+      .eq('status', 'active')
+    setDisconnectTarget(null)
+    fetchConnections()
+  }
+
+  // ── Save preferences ──────────────────────────────────────
+  async function handleSavePrefs() {
+    if (!supabase) return
+    setPrefsSaving(true)
+    setPrefsSaved(false)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
+      .from('user_preferences')
+      .upsert(
+        {
+          target_countries: prefs.target_countries,
+          sector: prefs.sector,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' }
+      )
+
+    if (!error) setPrefsSaved(true)
+    setPrefsSaving(false)
+    setTimeout(() => setPrefsSaved(false), 3000)
+  }
+
+  function toggleCountry(code: string) {
+    setPrefs(prev => {
+      const has = prev.target_countries.includes(code)
+      return {
+        ...prev,
+        target_countries: has
+          ? prev.target_countries.filter(c => c !== code)
+          : [...prev.target_countries, code],
+      }
+    })
+  }
+
+  // ── Delete account ─────────────────────────────────────────
   async function handleDeleteAccount() {
     setDeleting(true)
     setDeleteError(null)
@@ -132,22 +285,19 @@ export default function ProfilePage() {
       <div className="mb-8">
         <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Profil</h2>
         <p className="text-[13px] text-[#888] mt-2 leading-[1.6]">
-          Gerez votre compte et vos connexions.
+          Gerez votre compte, connexions et preferences.
         </p>
       </div>
 
-      {/* Account info */}
+      {/* ── Account info ─────────────────────────────────────── */}
       <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
-        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Compte</h3>
+        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Informations du compte</h3>
         {isLoaded && user ? (
           <div className="space-y-4">
+            {/* Avatar + name */}
             <div className="flex items-center gap-4">
               {user.imageUrl ? (
-                <img
-                  src={user.imageUrl}
-                  alt=""
-                  className="w-12 h-12 rounded-xl object-cover"
-                />
+                <img src={user.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" />
               ) : (
                 <div className="w-12 h-12 rounded-xl bg-[#c8a97e]/10 flex items-center justify-center">
                   <span className="text-[#c8a97e] text-lg font-medium">
@@ -155,39 +305,77 @@ export default function ProfilePage() {
                   </span>
                 </div>
               )}
-              <div>
+              <div className="flex-1">
                 <p className="text-[14px] font-medium text-white tracking-[0.02em]">
                   {user.fullName || 'Utilisateur'}
                 </p>
-                <p className="text-[13px] text-[#888]">
-                  {user.emailAddresses[0]?.emailAddress}
+                <p className="text-[11px] text-[#555] mt-0.5">
+                  Membre depuis {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '—'}
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#1e1e1e]">
-              <div>
-                <p className="text-[11px] tracking-[0.02em] text-[#555]">Membre depuis</p>
-                <p className="text-[13px] text-white mt-1">
-                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '—'}
-                </p>
+
+            {/* Email row */}
+            <div className="pt-4 border-t border-[#1e1e1e]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] tracking-[0.02em] text-[#555]">Email</p>
+                  <p className="text-[13px] text-white mt-1">{user.emailAddresses[0]?.emailAddress}</p>
+                </div>
+                {!editingEmail && (
+                  <button
+                    onClick={() => { setEditingEmail(true); setNewEmail(''); setEmailError(null); setEmailSuccess(false) }}
+                    className="btn-glass text-[12px] px-3 py-1.5"
+                  >
+                    Modifier
+                  </button>
+                )}
               </div>
-              <div>
-                <p className="text-[11px] tracking-[0.02em] text-[#555]">ID</p>
-                <p className="text-[13px] text-[#888] mt-1 font-mono text-[11px]">
-                  {user.id.slice(0, 16)}…
-                </p>
-              </div>
+
+              {editingEmail && (
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="nouveau@email.com"
+                    className="flex-1 px-4 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl text-[13px] text-white placeholder-[#555] focus:outline-none focus:border-[#c8a97e]/50 transition-colors duration-150"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleEmailSave}
+                    disabled={emailSaving || !newEmail.trim()}
+                    className="btn-primary text-[12px] px-3 py-1.5"
+                  >
+                    {emailSaving ? '...' : 'Sauver'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingEmail(false); setEmailError(null) }}
+                    className="btn-glass text-[12px] px-3 py-1.5"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              )}
+
+              {emailError && (
+                <p className="text-[12px] text-red-400 mt-2">{emailError}</p>
+              )}
+              {emailSuccess && (
+                <p className="text-[12px] text-green-400 mt-2">Un email de verification a ete envoye a votre nouvelle adresse.</p>
+              )}
             </div>
           </div>
         ) : (
-          <div className="h-16 bg-[#0a0a0a] rounded-xl animate-pulse" />
+          <div className="h-20 bg-[#0a0a0a] rounded-xl animate-pulse" />
         )}
       </div>
 
-      {/* Active connections */}
+      {/* ── Connections ───────────────────────────────────────── */}
       <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
-        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Connexions actives</h3>
+        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Connexions</h3>
         <div className="space-y-3">
+          {/* Shopify */}
           <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-[#96bf48]/10 rounded-lg flex items-center justify-center">
@@ -202,12 +390,34 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-            <span className={`flex items-center gap-1.5 text-[12px] ${shopify ? 'text-green-400' : 'text-[#555]'}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${shopify ? 'bg-green-500' : 'bg-[#555]'}`} />
-              {shopify ? 'Connecte' : 'Non connecte'}
-            </span>
+            <div className="flex items-center gap-2">
+              {shopify ? (
+                <>
+                  <span className="flex items-center gap-1.5 text-[12px] text-green-400 mr-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    Connecte
+                  </span>
+                  <Link href="/dashboard/connections" className="btn-glass text-[12px] px-3 py-1.5">
+                    Modifier
+                  </Link>
+                  <button
+                    onClick={() => setDisconnectTarget('shopify')}
+                    className="text-[12px] text-[#555] hover:text-red-400 transition-colors duration-150 px-2 py-1.5"
+                  >
+                    Deconnecter
+                  </button>
+                </>
+              ) : (
+                <Link href="/dashboard/connections" className="btn-primary text-[12px] px-3 py-1.5">
+                  Connecter
+                </Link>
+              )}
+            </div>
           </div>
+
           <div className="border-t border-[#1e1e1e]" />
+
+          {/* Meta */}
           <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -217,15 +427,91 @@ export default function ProfilePage() {
               </div>
               <p className="text-[13px] text-white">Meta Ads</p>
             </div>
-            <span className={`flex items-center gap-1.5 text-[12px] ${meta ? 'text-green-400' : 'text-[#555]'}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${meta ? 'bg-green-500' : 'bg-[#555]'}`} />
-              {meta ? 'Connecte' : 'Non connecte'}
-            </span>
+            <div className="flex items-center gap-2">
+              {meta ? (
+                <>
+                  <span className="flex items-center gap-1.5 text-[12px] text-green-400 mr-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    Connecte
+                  </span>
+                  <a href="/api/meta/auth" className="btn-glass text-[12px] px-3 py-1.5">
+                    Reconnecter
+                  </a>
+                  <button
+                    onClick={() => setDisconnectTarget('meta')}
+                    className="text-[12px] text-[#555] hover:text-red-400 transition-colors duration-150 px-2 py-1.5"
+                  >
+                    Deconnecter
+                  </button>
+                </>
+              ) : (
+                <a href="/api/meta/auth" className="btn-primary text-[12px] px-3 py-1.5">
+                  Connecter
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Danger Zone */}
+      {/* ── Preferences ──────────────────────────────────────── */}
+      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
+        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Preferences Market Brain</h3>
+
+        {/* Target countries */}
+        <div className="mb-5">
+          <p className="text-[11px] tracking-[0.02em] text-[#555] mb-3">Pays cibles</p>
+          <div className="flex flex-wrap gap-2">
+            {COUNTRIES.map(c => {
+              const active = prefs.target_countries.includes(c.code)
+              return (
+                <button
+                  key={c.code}
+                  onClick={() => toggleCountry(c.code)}
+                  className={`px-3 py-1.5 rounded-xl text-[12px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] ${
+                    active
+                      ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
+                      : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Sector */}
+        <div className="mb-5">
+          <p className="text-[11px] tracking-[0.02em] text-[#555] mb-3">Secteur d&apos;activite</p>
+          <select
+            value={prefs.sector}
+            onChange={(e) => setPrefs(prev => ({ ...prev, sector: e.target.value }))}
+            className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl text-[13px] text-white focus:outline-none focus:border-[#c8a97e]/50 transition-colors duration-150 appearance-none"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+          >
+            {SECTORS.map(s => (
+              <option key={s} value={s} className="bg-[#111] text-white">{s}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Save */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSavePrefs}
+            disabled={prefsSaving}
+            className="btn-primary text-[12px]"
+          >
+            {prefsSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+          </button>
+          {prefsSaved && (
+            <span className="text-[12px] text-green-400">Preferences sauvegardees</span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Danger Zone ──────────────────────────────────────── */}
       <div className="bg-[#111] border border-red-500/10 rounded-xl p-6">
         <h3 className="text-[11px] tracking-[0.02em] text-red-400/80 mb-2">Zone dangereuse</h3>
         <p className="text-[13px] text-[#888] leading-[1.6] mb-4">
@@ -247,6 +533,13 @@ export default function ProfilePage() {
         </button>
       </div>
 
+      {/* Modals */}
+      <DisconnectModal
+        open={!!disconnectTarget}
+        platform={disconnectTarget === 'shopify' ? 'Shopify' : 'Meta Ads'}
+        onClose={() => setDisconnectTarget(null)}
+        onConfirm={handleDisconnect}
+      />
       <DeleteAccountModal
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
