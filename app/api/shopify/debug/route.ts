@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { decrypt } from '@/lib/encryption'
 
 export async function GET() {
   return NextResponse.json({ status: 'ok', message: 'route accessible' })
@@ -52,6 +53,30 @@ export async function POST() {
       .select('*')
       .limit(1)
     steps.push(`shopify_data table: ${sdErr ? sdErr.message : `ok (${(sdData || []).length} rows)`}`)
+
+    // Step 5: Test Shopify API call
+    const connections = connData as Record<string, unknown>[] | null
+    if (connections && connections.length > 0) {
+      const conn = connections[0]
+      try {
+        const token = decrypt(conn.access_token_encrypted as string)
+        steps.push(`decrypt: ok (token length: ${token.length})`)
+
+        const shopDomain = conn.shop_domain as string
+        const shopRes = await fetch(`https://${shopDomain}/admin/api/2024-01/shop.json`, {
+          headers: {
+            'X-Shopify-Access-Token': token,
+            'Content-Type': 'application/json',
+          },
+        })
+        const shopBody = await shopRes.text()
+        steps.push(`shopify API: status ${shopRes.status}, body: ${shopBody.slice(0, 500)}`)
+      } catch (err) {
+        steps.push(`shopify API error: ${err instanceof Error ? err.message : String(err)}`)
+      }
+    } else {
+      steps.push('shopify API: skipped (no connection)')
+    }
 
     return NextResponse.json({ steps, status: 'debug complete' })
   } catch (err) {
