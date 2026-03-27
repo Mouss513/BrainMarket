@@ -5,19 +5,20 @@ import { decrypt } from '@/lib/encryption'
 
 // ============================================================
 // POST /api/meta/sync
-// Fetch Meta Ads campaigns data for the logged-in user
+// Fetch Meta Ads campaigns and store aggregated data in meta_data
 // ============================================================
 
-interface MetaCampaign {
+interface MetaCampaignRow {
   id: string
   name: string
   status: string
   spend: number
   impressions: number
   clicks: number
+  reach: number
   ctr: number
   cpm: number
-  actions?: { action_type: string; value: string }[]
+  roas: number
 }
 
 export async function POST() {
@@ -39,7 +40,6 @@ export async function POST() {
     if (userError || !userData) {
       return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 })
     }
-
     const userId = (userData as { id: string }).id
 
     // Get active Meta connection
@@ -74,24 +74,23 @@ export async function POST() {
 
     const accountsData = await accountsRes.json()
     const accounts = accountsData.data as { id: string; name: string; account_status: number }[]
-
     if (!accounts || accounts.length === 0) {
       return NextResponse.json({ error: 'Aucun compte publicitaire trouvé' }, { status: 404 })
     }
 
-    // Use first active account (account_status 1 = ACTIVE)
     const activeAccount = accounts.find(a => a.account_status === 1) || accounts[0]
 
-    // Fetch campaigns with insights (last 30 days)
+    // Date range: last 30 days
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    const today = new Date()
     const since = thirtyDaysAgo.toISOString().split('T')[0]
-    const until = today.toISOString().split('T')[0]
+    const until = new Date().toISOString().split('T')[0]
 
+    // Fetch campaigns with insights
     const campaignsRes = await fetch(
       `https://graph.facebook.com/v21.0/${activeAccount.id}/campaigns?` +
-      `fields=id,name,status,insights.time_range({"since":"${since}","until":"${until}"}){spend,impressions,clicks,ctr,cpm,actions}` +
+      `fields=id,name,status,insights.time_range({"since":"${since}","until":"${until}"})` +
+      `{spend,impressions,clicks,reach,ctr,cpm,actions,action_values}` +
       `&limit=50` +
       `&access_token=${accessToken}`
     )
@@ -102,38 +101,68 @@ export async function POST() {
     }
 
     const campaignsData = await campaignsRes.json()
-    const campaigns: MetaCampaign[] = (campaignsData.data || []).map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (c: any) => {
-        const insights = c.insights?.data?.[0] || {}
-        return {
-          id: c.id,
-          name: c.name,
-          status: c.status,
-          spend: parseFloat(insights.spend || '0'),
-          impressions: parseInt(insights.impressions || '0', 10),
-          clicks: parseInt(insights.clicks || '0', 10),
-          ctr: parseFloat(insights.ctr || '0'),
-          cpm: parseFloat(insights.cpm || '0'),
-          actions: insights.actions || [],
-        }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const campaigns: MetaCampaignRow[] = (campaignsData.data || []).map((c: any) => {
+      const ins = c.insights?.data?.[0] || {}
+      const spend = parseFloat(ins.spend || '0')
+
+      // ROAS from action_values (purchase value / spend)
+      let purchaseValue = 0
+      if (ins.action_values) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pv = ins.action_values.find((a: any) =>
+          a.action_type === 'purchase' || a.action_type === 'offsite_conversion.fb_pixel_purchase'
+        )
+        if (pv) purchaseValue = parseFloat(pv.value || '0')
       }
-    )
+      const roas = spend > 0 ? Math.round((purchaseValue / spend) * 100) / 100 : 0
 
-    // Aggregate metrics
-    const totalSpend = campaigns.reduce((sum, c) => sum + c.spend, 0)
-    const totalImpressions = campaigns.reduce((sum, c) => sum + c.impressions, 0)
-    const totalClicks = campaigns.reduce((sum, c) => sum + c.clicks, 0)
-    const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
-    const avgCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0
+      return {
+        id: c.id,
+        name: c.name,
+        status: c.status?.toLowerCase() || 'unknown',
+        spend: Math.round(spend * 100) / 100,
+        impressions: parseInt(ins.impressions || '0', 10),
+        clicks: parseInt(ins.clicks || '0', 10),
+        reach: parseInt(ins.reach || '0', 10),
+        ctr: Math.round(parseFloat(ins.ctr || '0') * 100) / 100,
+        cpm: Math.round(parseFloat(ins.cpm || '0') * 100) / 100,
+        roas,
+      }
+    })
 
-    // Calculate purchases from actions
-    const totalPurchases = campaigns.reduce((sum, c) => {
-      const purchaseAction = c.actions?.find(
-        a => a.action_type === 'purchase' || a.action_type === 'offsite_conversion.fb_pixel_purchase'
+    // Aggregate
+    const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
+    const totalImpressions = campaigns.reduce((s, c) => s + c.impressions, 0)
+    const totalClicks = campaigns.reduce((s, c) => s + c.clicks, 0)
+    const totalReach = campaigns.reduce((s, c) => s + c.reach, 0)
+    const avgCtr = totalImpressions > 0 ? Math.round((totalClicks / totalImpressions) * 10000) / 100 : 0
+    const avgCpm = totalImpressions > 0 ? Math.round((totalSpend / totalImpressions) * 100000) / 100 : 0
+
+    // Upsert into meta_data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: upsertError } = await (supabase.from('meta_data') as any)
+      .upsert(
+        {
+          user_id: userId,
+          account_id: activeAccount.id,
+          account_name: activeAccount.name,
+          campaigns,
+          total_spend: Math.round(totalSpend * 100) / 100,
+          total_impressions: totalImpressions,
+          total_clicks: totalClicks,
+          avg_ctr: avgCtr,
+          avg_cpm: avgCpm,
+          total_reach: totalReach,
+          synced_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' }
       )
-      return sum + (purchaseAction ? parseInt(purchaseAction.value, 10) : 0)
-    }, 0)
+
+    if (upsertError) {
+      console.error('[meta/sync] Upsert error:', upsertError)
+      return NextResponse.json({ error: 'Erreur de sauvegarde', details: upsertError.message }, { status: 500 })
+    }
 
     console.log(`[meta/sync] Synced ${campaigns.length} campaigns, ${totalSpend}€ spend for user ${userId}`)
 
@@ -142,14 +171,14 @@ export async function POST() {
       data: {
         account_id: activeAccount.id,
         account_name: activeAccount.name,
-        campaigns: campaigns.slice(0, 20),
+        campaigns,
         summary: {
           total_spend: Math.round(totalSpend * 100) / 100,
           total_impressions: totalImpressions,
           total_clicks: totalClicks,
-          avg_ctr: Math.round(avgCtr * 100) / 100,
-          avg_cpm: Math.round(avgCpm * 100) / 100,
-          total_purchases: totalPurchases,
+          avg_ctr: avgCtr,
+          avg_cpm: avgCpm,
+          total_reach: totalReach,
           campaigns_count: campaigns.length,
         },
         synced_at: new Date().toISOString(),
