@@ -20,11 +20,11 @@ function MetricCard({
   suffix?: string
 }) {
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
-      <p className="text-[11px] tracking-[0.02em] text-[#888] mb-3">{label}</p>
-      <p className="text-3xl font-light text-white nums">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.06]">
+      <p className="text-[11px] uppercase tracking-widest text-white/40 mb-3">{label}</p>
+      <p className="text-3xl font-light tracking-tight text-white nums">
         {value}
-        {suffix && <span className="text-base text-[#555] ml-1">{suffix}</span>}
+        {suffix && <span className="text-base text-white/30 ml-1">{suffix}</span>}
       </p>
     </div>
   )
@@ -37,8 +37,8 @@ function RoasChart() {
   const range = max - min || 1
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
-      <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-6">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 backdrop-blur-sm">
+      <h3 className="text-[11px] uppercase tracking-widest text-white/40 mb-6">
         Evolution ROAS — 30 jours
       </h3>
       <div className="flex items-end gap-[3px] h-40">
@@ -52,21 +52,21 @@ function RoasChart() {
               style={{ height: '100%' }}
             >
               <div
-                className={`absolute bottom-0 w-full rounded-sm transition-colors ${
+                className={`absolute bottom-0 w-full rounded-sm transition-all duration-200 ${
                   isGood
-                    ? 'bg-[#c8a97e] group-hover:bg-[#d4b88a]'
-                    : 'bg-[#2a2a2a] group-hover:bg-[#3a3a3a]'
+                    ? 'bg-white group-hover:bg-white/80'
+                    : 'bg-white/15 group-hover:bg-white/25'
                 }`}
                 style={{ height: `${height}%` }}
               />
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#1e1e1e] text-[11px] text-white px-2 py-1 rounded-lg whitespace-nowrap z-10 nums">
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-white/10 backdrop-blur-md text-[11px] text-white px-2 py-1 rounded-lg whitespace-nowrap z-10 nums border border-white/[0.1]">
                 {d.day}: {d.roas}x
               </div>
             </div>
           )
         })}
       </div>
-      <div className="flex justify-between mt-3 text-[11px] text-[#555]">
+      <div className="flex justify-between mt-3 text-[11px] text-white/30">
         <span>{data[0].day}</span>
         <span>{data[data.length - 1].day}</span>
       </div>
@@ -82,18 +82,18 @@ function RecommendationCard({ rec }: { rec: RecData }) {
   const pct = Math.round(confidenceScore * 100)
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.06]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             {rec.applied && (
-              <span className="text-[10px] tracking-[0.02em] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-lg">
+              <span className="text-[10px] tracking-widest uppercase bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full">
                 Appliquee
               </span>
             )}
           </div>
           <h4 className="text-[14px] font-medium text-white tracking-[0.02em]">{rec.title}</h4>
-          <p className="text-[13px] text-[#888] mt-1.5 leading-[1.6]">
+          <p className="text-[13px] text-white/50 mt-1.5 leading-[1.6]">
             {rec.description}
           </p>
         </div>
@@ -101,15 +101,15 @@ function RecommendationCard({ rec }: { rec: RecData }) {
           <div
             className={`text-2xl font-light nums ${
               pct >= 85
-                ? 'text-green-400'
+                ? 'text-white'
                 : pct >= 70
-                ? 'text-[#c8a97e]'
-                : 'text-[#888]'
+                ? 'text-[#e8d5b7]'
+                : 'text-white/50'
             }`}
           >
             {pct}%
           </div>
-          <div className="text-[10px] tracking-[0.02em] text-[#555]">confiance</div>
+          <div className="text-[10px] tracking-widest uppercase text-white/30">confiance</div>
         </div>
       </div>
     </div>
@@ -246,13 +246,13 @@ export default function DashboardOverview() {
   return (
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Overview</h2>
+        <h2 className="font-display text-[28px] text-white">Overview</h2>
         {shopifyData?.synced_at && (
           <div className="flex items-center gap-3">
             {estimated && (
-              <span className="text-[10px] tracking-[0.02em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded-lg">Donnees estimees</span>
+              <span className="text-[10px] tracking-widest uppercase bg-[#e8d5b7]/10 text-[#e8d5b7] px-2.5 py-0.5 rounded-full">Donnees estimees</span>
             )}
-            <span className="text-[11px] text-[#555]">
+            <span className="text-[11px] text-white/30">
               Synchro : {new Date(shopifyData.synced_at).toLocaleString('fr-FR')}
             </span>
           </div>
@@ -273,7 +273,7 @@ export default function DashboardOverview() {
 
       {/* Sync button */}
       {syncError && (
-        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
           <p className="text-[13px] text-red-400 leading-[1.6]">Erreur sync : {syncError}</p>
         </div>
       )}
@@ -305,22 +305,22 @@ export default function DashboardOverview() {
       {/* Top Products from Shopify */}
       {shopifyData && shopifyData.top_products.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Top 5 produits (30 jours)</h3>
-          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl overflow-hidden">
+          <h3 className="text-[11px] uppercase tracking-widest text-white/40 mb-4">Top 5 produits (30 jours)</h3>
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden backdrop-blur-sm">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-[#1e1e1e]">
-                  <th className="text-left px-5 py-3 text-[11px] tracking-[0.02em] text-[#888] font-normal">Produit</th>
-                  <th className="text-right px-5 py-3 text-[11px] tracking-[0.02em] text-[#888] font-normal">Ventes</th>
-                  <th className="text-right px-5 py-3 text-[11px] tracking-[0.02em] text-[#888] font-normal">Revenus</th>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="text-left px-5 py-3 text-[11px] uppercase tracking-widest text-white/40 font-normal">Produit</th>
+                  <th className="text-right px-5 py-3 text-[11px] uppercase tracking-widest text-white/40 font-normal">Ventes</th>
+                  <th className="text-right px-5 py-3 text-[11px] uppercase tracking-widest text-white/40 font-normal">Revenus</th>
                 </tr>
               </thead>
               <tbody>
                 {shopifyData.top_products.map((p, i) => (
-                  <tr key={i} className="border-b border-[#1e1e1e]/50 last:border-0 hover:bg-white/[0.02] transition-colors">
+                  <tr key={i} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-colors">
                     <td className="px-5 py-3.5 text-white">{p.title}</td>
-                    <td className="px-5 py-3.5 text-right text-[#888] nums">{p.units_sold}</td>
-                    <td className="px-5 py-3.5 text-right text-[#888] nums">{p.revenue.toLocaleString('fr-FR')} €</td>
+                    <td className="px-5 py-3.5 text-right text-white/50 nums">{p.units_sold}</td>
+                    <td className="px-5 py-3.5 text-right text-white/50 nums">{p.revenue.toLocaleString('fr-FR')} €</td>
                   </tr>
                 ))}
               </tbody>
@@ -338,7 +338,7 @@ export default function DashboardOverview() {
       <div>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <h3 className="text-[14px] font-medium tracking-[0.02em] text-white">
+            <h3 className="font-display text-[18px] text-white">
               Recommandations du Market Brain
             </h3>
             <div className="flex items-center gap-1.5">

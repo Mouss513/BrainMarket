@@ -29,43 +29,43 @@ interface DisplayCampaign {
 }
 
 function roasColor(roas: number) {
-  if (roas >= 3) return 'text-green-400'
-  if (roas >= 1) return 'text-[#c8a97e]'
+  if (roas >= 3) return 'text-white'
+  if (roas >= 1) return 'text-[#e8d5b7]'
   return 'text-red-400'
 }
 
 function roasDot(roas: number) {
-  if (roas >= 3) return 'bg-green-500'
-  if (roas >= 1) return 'bg-[#c8a97e]'
-  return 'bg-red-500'
+  if (roas >= 3) return 'bg-white'
+  if (roas >= 1) return 'bg-[#e8d5b7]'
+  return 'bg-red-400'
 }
 
 function statusIndicator(status: string) {
   const s = status.toLowerCase()
   if (s === 'active')
     return (
-      <span className="flex items-center gap-1.5 text-[12px] text-[#888]">
+      <span className="flex items-center gap-1.5 text-[12px] text-white/50">
         <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
         Active
       </span>
     )
   if (s === 'paused')
     return (
-      <span className="flex items-center gap-1.5 text-[12px] text-[#888]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#c8a97e]" />
+      <span className="flex items-center gap-1.5 text-[12px] text-white/50">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#e8d5b7]" />
         En pause
       </span>
     )
   if (s === 'draft')
     return (
-      <span className="flex items-center gap-1.5 text-[12px] text-[#555]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#555]" />
+      <span className="flex items-center gap-1.5 text-[12px] text-white/30">
+        <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
         Brouillon
       </span>
     )
   return (
-    <span className="flex items-center gap-1.5 text-[12px] text-[#555]">
-      <span className="w-1.5 h-1.5 rounded-full bg-[#555]" />
+    <span className="flex items-center gap-1.5 text-[12px] text-white/30">
+      <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
       {status}
     </span>
   )
@@ -136,16 +136,16 @@ export default function CampaignsPage() {
     <div className="max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Campagnes</h2>
+          <h2 className="font-display text-[28px] text-white">Campagnes</h2>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-[13px] text-[#888]">
+            <span className="text-[13px] text-white/50">
               {campaigns.length} campagne{campaigns.length > 1 ? 's' : ''}
             </span>
             {!isRealData && (
-              <span className="text-[10px] tracking-[0.02em] text-[#555] bg-[#1e1e1e] px-2 py-0.5 rounded-lg">Donnees demo</span>
+              <span className="text-[10px] tracking-widest uppercase text-white/30 bg-white/[0.06] px-2.5 py-0.5 rounded-full">Donnees demo</span>
             )}
             {syncedAt && (
-              <span className="text-[11px] text-[#555]">
+              <span className="text-[11px] text-white/30">
                 Synchro : {new Date(syncedAt).toLocaleString('fr-FR')}
               </span>
             )}
@@ -176,30 +176,30 @@ export default function CampaignsPage() {
       </div>
 
       {syncError && (
-        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
           <p className="text-[13px] text-red-400 leading-[1.6]">Erreur sync : {syncError}</p>
         </div>
       )}
 
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl overflow-hidden">
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden backdrop-blur-sm">
         <table className="w-full text-[13px]">
           <thead>
-            <tr className="border-b border-[#1e1e1e]">
-              <th className="text-left px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Campagne</th>
-              <th className="text-left px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Plateforme</th>
-              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Depense</th>
-              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">ROAS</th>
-              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">CTR</th>
-              <th className="text-right px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">CPM</th>
-              <th className="text-center px-5 py-3.5 text-[11px] tracking-[0.02em] text-[#888] font-normal">Statut</th>
+            <tr className="border-b border-white/[0.06]">
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">Campagne</th>
+              <th className="text-left px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">Plateforme</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">Depense</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">ROAS</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">CTR</th>
+              <th className="text-right px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">CPM</th>
+              <th className="text-center px-5 py-3.5 text-[11px] uppercase tracking-widest text-white/40 font-normal">Statut</th>
             </tr>
           </thead>
           <tbody>
             {campaigns.map((c, i) => (
               <tr
                 key={c.id}
-                className={`border-b border-[#1e1e1e]/50 last:border-0 hover:bg-white/[0.02] transition-colors ${
-                  i % 2 === 1 ? 'bg-[#0e0e0e]' : ''
+                className={`border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-colors ${
+                  i % 2 === 1 ? 'bg-white/[0.01]' : ''
                 }`}
               >
                 <td className="px-5 py-4">
@@ -208,17 +208,17 @@ export default function CampaignsPage() {
                     <span className="text-white">{c.name}</span>
                   </div>
                 </td>
-                <td className="px-5 py-4 text-[#888]">{c.platform}</td>
+                <td className="px-5 py-4 text-white/50">{c.platform}</td>
                 <td className="px-5 py-4 text-right text-white nums">
                   {c.budget.toLocaleString('fr-FR')} €
                 </td>
                 <td className={`px-5 py-4 text-right font-light text-lg nums ${roasColor(c.roas)}`}>
                   {c.status === 'draft' ? '—' : `${c.roas}x`}
                 </td>
-                <td className="px-5 py-4 text-right text-[#888] nums">
+                <td className="px-5 py-4 text-right text-white/50 nums">
                   {c.status === 'draft' ? '—' : `${c.ctr}%`}
                 </td>
-                <td className="px-5 py-4 text-right text-[#888] nums">
+                <td className="px-5 py-4 text-right text-white/50 nums">
                   {c.status === 'draft' ? '—' : `${c.cpm} €`}
                 </td>
                 <td className="px-5 py-4 text-center">{statusIndicator(c.status)}</td>
@@ -229,17 +229,17 @@ export default function CampaignsPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex gap-6 mt-4 text-[11px] text-[#555]">
+      <div className="flex gap-6 mt-4 text-[11px] text-white/30">
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white" />
           ROAS &gt; 3x
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#c8a97e]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#e8d5b7]" />
           ROAS 1-3x
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
           ROAS &lt; 1x
         </div>
       </div>

@@ -42,13 +42,13 @@ export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-[#080808] border-r border-[#1a1a1a] flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-60 bg-[#050508]/80 backdrop-blur-xl border-r border-white/[0.06] flex flex-col z-20">
       {/* Logo */}
-      <div className="px-5 py-6 border-b border-[#1a1a1a]">
-        <h1 className="text-[15px] font-medium tracking-[0.12em] uppercase text-[#c8a97e]">
+      <div className="px-5 py-6 border-b border-white/[0.06]">
+        <h1 className="text-sm font-medium tracking-widest uppercase text-white">
           {APP_CONFIG.name}
         </h1>
-        <p className="text-[11px] text-[#555] mt-1 tracking-[0.02em]">Orem Studio</p>
+        <p className="text-[11px] text-white/30 mt-1 tracking-[0.02em]">Intelligence vivante</p>
       </div>
 
       {/* Nav */}
@@ -63,12 +63,16 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] tracking-[0.02em] transition-all duration-150 ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] tracking-[0.02em] transition-all duration-200 ${
                 isActive
-                  ? 'bg-[#c8a97e]/10 text-[#c8a97e]'
-                  : 'text-[#888] hover:text-white hover:bg-white/[0.05]'
+                  ? 'text-white'
+                  : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
               }`}
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
             >
+              {isActive && (
+                <span className="w-1 h-1 rounded-full bg-white animate-pulse absolute left-1" />
+              )}
               {icons[item.icon]}
               {item.label}
             </Link>
@@ -77,18 +81,18 @@ export default function Sidebar() {
       </nav>
 
       {/* Brain status */}
-      <div className="px-4 py-3 mx-3 mb-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+      <div className="px-4 py-3 mx-3 mb-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[11px] tracking-[0.02em] text-[#888]">Market Brain actif</span>
+          <span className="text-[11px] tracking-[0.02em] text-[#e8d5b7]">Market Brain actif</span>
         </div>
-        <p className="text-[11px] text-[#555] mt-1 leading-relaxed">Derniere analyse il y a 2h</p>
+        <p className="text-[11px] text-white/30 mt-1 leading-relaxed">Derniere analyse il y a 2h</p>
       </div>
 
       {/* Sign out */}
       <div className="px-3 pb-4">
         <SignOutButton>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-[#555] hover:text-[#888] hover:bg-white/[0.05] transition-all duration-150 active:scale-[0.98]">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-200 active:scale-[0.98]">
             <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
             </svg>

@@ -93,18 +93,19 @@ function DisconnectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[#111] border border-[#1e1e1e] rounded-xl p-6 w-full max-w-sm mx-4">
+      <div className="relative bg-[#0c0c10] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm mx-4">
         <h3 className="text-[16px] font-medium text-white tracking-[0.02em] mb-3">
           Deconnecter {platform}
         </h3>
-        <p className="text-[13px] text-[#888] leading-[1.6] mb-5">
+        <p className="text-[13px] text-white/50 leading-[1.6] mb-5">
           Les donnees deja synchronisees resteront disponibles. Vous pourrez reconnecter a tout moment.
         </p>
         <div className="flex gap-3">
           <button onClick={onClose} className="btn-glass flex-1">Annuler</button>
           <button
             onClick={onConfirm}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-xl border border-red-500/20 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-all duration-150 hover:-translate-y-[1px] hover:bg-red-500/20 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:translate-y-0 active:scale-[0.98]"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-full border border-red-500/20 backdrop-blur-md transition-all duration-200 hover:bg-red-500/20 active:scale-[0.96]"
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
           >
             Deconnecter
           </button>
@@ -133,15 +134,15 @@ function DeleteAccountModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[#111] border border-[#1e1e1e] rounded-xl p-6 w-full max-w-md mx-4">
+      <div className="relative bg-[#0c0c10] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md mx-4">
         <h3 className="text-[16px] font-medium text-white tracking-[0.02em] mb-3">
           Supprimer mon compte
         </h3>
-        <p className="text-[13px] text-[#888] leading-[1.6] mb-4">
+        <p className="text-[13px] text-white/50 leading-[1.6] mb-4">
           Cette action est irreversible. Toutes vos donnees seront supprimees : connexions Shopify, Meta, recommandations, historique.
         </p>
         <div className="mb-4">
-          <label className="text-[11px] tracking-[0.02em] text-[#555] block mb-2">
+          <label className="text-[11px] uppercase tracking-widest text-white/30 block mb-2">
             Tapez SUPPRIMER pour confirmer
           </label>
           <input
@@ -149,7 +150,7 @@ function DeleteAccountModal({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="SUPPRIMER"
-            className="w-full px-4 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl text-[13px] text-white placeholder-[#555] focus:outline-none focus:border-red-500/50 transition-colors duration-150"
+            className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-full text-[13px] text-white placeholder-white/20 focus:outline-none focus:border-red-500/50 transition-colors duration-200"
           />
         </div>
         <div className="flex gap-3">
@@ -157,7 +158,8 @@ function DeleteAccountModal({
           <button
             onClick={onConfirm}
             disabled={input !== 'SUPPRIMER' || deleting}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-xl border border-red-500/20 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-all duration-150 hover:-translate-y-[1px] hover:bg-red-500/20 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:translate-y-0 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-red-500/10 disabled:active:scale-100"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-full border border-red-500/20 backdrop-blur-md transition-all duration-200 hover:bg-red-500/20 active:scale-[0.96] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
           >
             {deleting ? (
               <>
@@ -369,27 +371,33 @@ export default function ProfilePage() {
   const shopify = connections.find(c => c.platform === 'shopify')
   const meta = connections.find(c => c.platform === 'meta')
 
+  // Active chip style helper
+  const chipActive = 'bg-white/[0.1] border-white/[0.25] text-white'
+  const chipActivePartial = 'bg-white/[0.05] border-white/[0.15] text-white/70'
+  const chipInactive = 'bg-transparent border-white/[0.08] text-white/30 hover:border-white/[0.15] hover:text-white/50'
+  const chipDisabled = 'bg-transparent border-white/[0.04] text-white/15 cursor-not-allowed'
+
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
-        <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Profil</h2>
-        <p className="text-[13px] text-[#888] mt-2 leading-[1.6]">
+        <h2 className="font-display text-[28px] text-white">Profil</h2>
+        <p className="text-[13px] text-white/50 mt-2 leading-[1.6]">
           Gerez votre compte, connexions et preferences.
         </p>
       </div>
 
       {/* ── Account info ─────────────────────────────────────── */}
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
-        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Informations du compte</h3>
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mb-4 backdrop-blur-sm">
+        <h3 className="text-[11px] uppercase tracking-widest text-white/40 mb-4">Informations du compte</h3>
         {isLoaded && user ? (
           <div className="space-y-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-4">
               {user.imageUrl ? (
-                <img src={user.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                <img src={user.imageUrl} alt="" className="w-12 h-12 rounded-2xl object-cover" />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-[#c8a97e]/10 flex items-center justify-center">
-                  <span className="text-[#c8a97e] text-lg font-medium">
+                <div className="w-12 h-12 rounded-2xl bg-white/[0.06] flex items-center justify-center">
+                  <span className="text-white text-lg font-medium">
                     {(user.firstName?.[0] || user.emailAddresses[0]?.emailAddress[0] || '?').toUpperCase()}
                   </span>
                 </div>
@@ -398,17 +406,17 @@ export default function ProfilePage() {
                 <p className="text-[14px] font-medium text-white tracking-[0.02em]">
                   {user.fullName || 'Utilisateur'}
                 </p>
-                <p className="text-[11px] text-[#555] mt-0.5">
+                <p className="text-[11px] text-white/30 mt-0.5">
                   Membre depuis {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '—'}
                 </p>
               </div>
             </div>
 
             {/* Email row */}
-            <div className="pt-4 border-t border-[#1e1e1e]">
+            <div className="pt-4 border-t border-white/[0.06]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] tracking-[0.02em] text-[#555]">Email</p>
+                  <p className="text-[11px] uppercase tracking-widest text-white/30">Email</p>
                   <p className="text-[13px] text-white mt-1">{user.emailAddresses[0]?.emailAddress}</p>
                 </div>
                 {!editingEmail && (
@@ -428,7 +436,7 @@ export default function ProfilePage() {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="nouveau@email.com"
-                    className="flex-1 px-4 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl text-[13px] text-white placeholder-[#555] focus:outline-none focus:border-[#c8a97e]/50 transition-colors duration-150"
+                    className="flex-1 px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-full text-[13px] text-white placeholder-white/20 focus:outline-none focus:border-white/[0.2] transition-colors duration-200"
                     autoFocus
                   />
                   <button
@@ -456,13 +464,13 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : (
-          <div className="h-20 bg-[#0a0a0a] rounded-xl animate-pulse" />
+          <div className="h-20 bg-white/[0.02] rounded-2xl animate-pulse" />
         )}
       </div>
 
       {/* ── Connections ───────────────────────────────────────── */}
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
-        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Connexions</h3>
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mb-4 backdrop-blur-sm">
+        <h3 className="text-[11px] uppercase tracking-widest text-white/40 mb-4">Connexions</h3>
         <div className="space-y-3">
           {/* Shopify */}
           <div className="flex items-center justify-between py-2">
@@ -475,7 +483,7 @@ export default function ProfilePage() {
               <div>
                 <p className="text-[13px] text-white">Shopify</p>
                 {shopify?.shop_domain && (
-                  <p className="text-[11px] text-[#555]">{shopify.shop_domain}</p>
+                  <p className="text-[11px] text-white/30">{shopify.shop_domain}</p>
                 )}
               </div>
             </div>
@@ -491,7 +499,7 @@ export default function ProfilePage() {
                   </Link>
                   <button
                     onClick={() => setDisconnectTarget('shopify')}
-                    className="text-[12px] text-[#555] hover:text-red-400 transition-colors duration-150 px-2 py-1.5"
+                    className="text-[12px] text-white/30 hover:text-red-400 transition-colors duration-200 px-2 py-1.5"
                   >
                     Deconnecter
                   </button>
@@ -504,7 +512,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="border-t border-[#1e1e1e]" />
+          <div className="border-t border-white/[0.06]" />
 
           {/* Meta */}
           <div className="flex items-center justify-between py-2">
@@ -528,7 +536,7 @@ export default function ProfilePage() {
                   </a>
                   <button
                     onClick={() => setDisconnectTarget('meta')}
-                    className="text-[12px] text-[#555] hover:text-red-400 transition-colors duration-150 px-2 py-1.5"
+                    className="text-[12px] text-white/30 hover:text-red-400 transition-colors duration-200 px-2 py-1.5"
                   >
                     Deconnecter
                   </button>
@@ -544,21 +552,20 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Preferences ──────────────────────────────────────── */}
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-4">
-        <h3 className="text-[11px] tracking-[0.02em] text-[#888] mb-4">Preferences Market Brain</h3>
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mb-4 backdrop-blur-sm">
+        <h3 className="text-[11px] uppercase tracking-widest text-white/40 mb-4">Preferences Market Brain</h3>
 
         {/* Target countries — hierarchical */}
         <div className="mb-6">
-          <p className="text-[11px] tracking-[0.02em] text-[#555] mb-3">Pays cibles</p>
+          <p className="text-[11px] uppercase tracking-widest text-white/30 mb-3">Pays cibles</p>
 
           {/* World toggle */}
           <button
             onClick={toggleWorld}
-            className={`px-4 py-2 rounded-xl text-[12px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] mb-3 ${
-              isWorldSelected
-                ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
-                : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+            className={`px-4 py-2 rounded-full text-[12px] tracking-[0.02em] border transition-all duration-200 active:scale-[0.96] mb-3 ${
+              isWorldSelected ? chipActive : chipInactive
             }`}
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
           >
             Monde entier
           </button>
@@ -569,13 +576,14 @@ export default function ProfilePage() {
               <div key={continent.label}>
                 <button
                   onClick={() => toggleContinent(continent.label)}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium tracking-[0.04em] uppercase border transition-all duration-150 active:scale-[0.98] mb-2 ${
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-medium tracking-widest uppercase border transition-all duration-200 active:scale-[0.96] mb-2 ${
                     isContinentSelected(continent.label)
-                      ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
+                      ? chipActive
                       : isContinentPartial(continent.label)
-                        ? 'bg-[#c8a97e]/5 border-[#c8a97e]/15 text-[#c8a97e]/70'
-                        : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                        ? chipActivePartial
+                        : chipInactive
                   }`}
+                  style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                 >
                   {continent.label}
                 </button>
@@ -586,11 +594,10 @@ export default function ProfilePage() {
                       <button
                         key={c.code}
                         onClick={() => toggleCountry(c.code)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] ${
-                          active
-                            ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
-                            : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                        className={`px-2.5 py-1 rounded-full text-[11px] tracking-[0.02em] border transition-all duration-200 active:scale-[0.96] ${
+                          active ? chipActive : chipInactive
                         }`}
+                        style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                       >
                         {c.label}
                       </button>
@@ -605,25 +612,26 @@ export default function ProfilePage() {
         {/* Reference sectors — multi-select chips */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] tracking-[0.02em] text-[#555]">Secteurs de reference</p>
-            <span className="text-[10px] text-[#444]">{prefs.reference_sectors.length}/5</span>
+            <p className="text-[11px] uppercase tracking-widest text-white/30">Secteurs de reference</p>
+            <span className="text-[10px] text-white/20">{prefs.reference_sectors.length}/5</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {REFERENCE_SECTORS.map(s => {
               const active = prefs.reference_sectors.includes(s.id)
-              const disabled = !active && prefs.reference_sectors.length >= 5
+              const isDisabled = !active && prefs.reference_sectors.length >= 5
               return (
                 <button
                   key={s.id}
                   onClick={() => toggleSector(s.id)}
-                  disabled={disabled}
-                  className={`px-3 py-1.5 rounded-xl text-[12px] tracking-[0.02em] border transition-all duration-150 active:scale-[0.98] ${
+                  disabled={isDisabled}
+                  className={`px-3 py-1.5 rounded-full text-[12px] tracking-[0.02em] border transition-all duration-200 active:scale-[0.96] ${
                     active
-                      ? 'bg-[#c8a97e]/10 border-[#c8a97e]/30 text-[#c8a97e]'
-                      : disabled
-                        ? 'bg-transparent border-[#1e1e1e] text-[#333] cursor-not-allowed'
-                        : 'bg-transparent border-[#1e1e1e] text-[#555] hover:border-[#333] hover:text-[#888]'
+                      ? chipActive
+                      : isDisabled
+                        ? chipDisabled
+                        : chipInactive
                   }`}
+                  style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                 >
                   {s.emoji} {s.label}
                 </button>
@@ -651,19 +659,20 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Danger Zone ──────────────────────────────────────── */}
-      <div className="bg-[#111] border border-red-500/10 rounded-xl p-6">
-        <h3 className="text-[11px] tracking-[0.02em] text-red-400/80 mb-2">Zone dangereuse</h3>
-        <p className="text-[13px] text-[#888] leading-[1.6] mb-4">
+      <div className="bg-white/[0.03] border border-red-500/10 rounded-2xl p-6 backdrop-blur-sm">
+        <h3 className="text-[11px] uppercase tracking-widest text-red-400/80 mb-2">Zone dangereuse</h3>
+        <p className="text-[13px] text-white/50 leading-[1.6] mb-4">
           La suppression du compte est permanente. Toutes les donnees, connexions et recommandations seront perdues.
         </p>
         {deleteError && (
-          <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+          <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
             <p className="text-[13px] text-red-400 leading-[1.6]">{deleteError}</p>
           </div>
         )}
         <button
           onClick={() => setShowDeleteModal(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-xl border border-red-500/20 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-all duration-150 hover:-translate-y-[1px] hover:bg-red-500/20 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:translate-y-0 active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-400 text-[13px] font-medium tracking-[0.02em] rounded-full border border-red-500/20 backdrop-blur-md transition-all duration-200 hover:bg-red-500/20 active:scale-[0.96]"
+          style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />

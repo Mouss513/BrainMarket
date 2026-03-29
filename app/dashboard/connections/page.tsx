@@ -24,8 +24,8 @@ function StatusIndicator({ status }: { status: ConnectionStatus }) {
     )
   }
   return (
-    <span className="flex items-center gap-1.5 text-[12px] text-[#555]">
-      <span className="w-1.5 h-1.5 rounded-full bg-[#555]" />
+    <span className="flex items-center gap-1.5 text-[12px] text-white/30">
+      <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
       Non connecte
     </span>
   )
@@ -62,7 +62,7 @@ function ShopifyCard({
   }
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.05]">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[#96bf48]/10 rounded-xl flex items-center justify-center">
@@ -72,7 +72,7 @@ function ShopifyCard({
           </div>
           <div>
             <h3 className="text-[14px] font-medium text-white tracking-[0.02em]">Shopify</h3>
-            <p className="text-[12px] text-[#555] mt-0.5 leading-[1.6]">Synchronise tes produits et ventes</p>
+            <p className="text-[12px] text-white/30 mt-0.5 leading-[1.6]">Synchronise tes produits et ventes</p>
           </div>
         </div>
         <StatusIndicator status={status} />
@@ -80,13 +80,13 @@ function ShopifyCard({
 
       {status === 'connected' ? (
         <div>
-          <div className="flex items-center gap-2 mb-4 px-3 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl">
+          <div className="flex items-center gap-2 mb-4 px-3 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span className="text-[13px] text-[#888]">{shopUrl}</span>
+            <span className="text-[13px] text-white/50">{shopUrl}</span>
           </div>
           <button
             onClick={handleDisconnect}
-            className="text-[12px] text-[#555] hover:text-red-400 transition-colors duration-150 active:scale-[0.98]"
+            className="text-[12px] text-white/30 hover:text-red-400 transition-colors duration-200 active:scale-[0.98]"
           >
             Deconnecter
           </button>
@@ -98,7 +98,7 @@ function ShopifyCard({
             placeholder="mon-shop.myshopify.com"
             value={shopUrl}
             onChange={(e) => setShopUrl(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl text-[13px] text-white placeholder-[#555] focus:outline-none focus:border-[#c8a97e]/50 transition-colors duration-150"
+            className="flex-1 px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-full text-[13px] text-white placeholder-white/30 focus:outline-none focus:border-white/[0.2] transition-colors duration-200"
           />
           <button
             onClick={handleConnect}
@@ -128,7 +128,7 @@ function MetaAdsCard({
   }
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.05]">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
@@ -138,7 +138,7 @@ function MetaAdsCard({
           </div>
           <div>
             <h3 className="text-[14px] font-medium text-white tracking-[0.02em]">Meta Ads</h3>
-            <p className="text-[12px] text-[#555] mt-0.5 leading-[1.6]">Importe tes campagnes Facebook & Instagram</p>
+            <p className="text-[12px] text-white/30 mt-0.5 leading-[1.6]">Importe tes campagnes Facebook & Instagram</p>
           </div>
         </div>
         <StatusIndicator status={status} />
@@ -146,13 +146,13 @@ function MetaAdsCard({
 
       {status === 'connected' ? (
         <div>
-          <div className="flex items-center gap-2 mb-4 px-3 py-2.5 bg-[#0a0a0a] border border-[#1e1e1e] rounded-xl">
+          <div className="flex items-center gap-2 mb-4 px-3 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span className="text-[13px] text-[#888]">Compte Meta connecte</span>
+            <span className="text-[13px] text-white/50">Compte Meta connecte</span>
           </div>
           <button
             onClick={onDisconnect}
-            className="text-[12px] text-[#555] hover:text-red-400 transition-colors duration-150 active:scale-[0.98]"
+            className="text-[12px] text-white/30 hover:text-red-400 transition-colors duration-200 active:scale-[0.98]"
           >
             Deconnecter
           </button>
@@ -227,14 +227,14 @@ export default function ConnectionsPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
-        <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Connexions</h2>
-        <p className="text-[13px] text-[#888] mt-2 leading-[1.6]">
+        <h2 className="font-display text-[28px] text-white">Connexions</h2>
+        <p className="text-[13px] text-white/50 mt-2 leading-[1.6]">
           Connecte tes plateformes pour alimenter le Market Brain avec tes vraies donnees.
         </p>
       </div>
 
       {searchParams.get('shopify') === 'connected' && (
-        <div className="mb-4 px-4 py-3 bg-green-500/5 border border-green-500/10 rounded-xl">
+        <div className="mb-4 px-4 py-3 bg-green-500/5 border border-green-500/10 rounded-2xl">
           <p className="text-[13px] text-green-400 leading-[1.6]">
             Shopify connecte avec succes ! Tes donnees seront synchronisees automatiquement.
           </p>
@@ -242,7 +242,7 @@ export default function ConnectionsPage() {
       )}
 
       {searchParams.get('shopify') === 'error' && (
-        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
           <p className="text-[13px] text-red-400 leading-[1.6]">
             Erreur lors de la connexion Shopify ({searchParams.get('reason') || 'inconnue'}).
             Verifie l&apos;URL de ta boutique et reessaie.
@@ -251,7 +251,7 @@ export default function ConnectionsPage() {
       )}
 
       {searchParams.get('meta') === 'connected' && (
-        <div className="mb-4 px-4 py-3 bg-green-500/5 border border-green-500/10 rounded-xl">
+        <div className="mb-4 px-4 py-3 bg-green-500/5 border border-green-500/10 rounded-2xl">
           <p className="text-[13px] text-green-400 leading-[1.6]">
             Meta Ads connecte avec succes ! Tes campagnes seront synchronisees.
           </p>
@@ -259,7 +259,7 @@ export default function ConnectionsPage() {
       )}
 
       {searchParams.get('meta') === 'error' && (
-        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+        <div className="mb-4 px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
           <p className="text-[13px] text-red-400 leading-[1.6]">
             Erreur lors de la connexion Meta ({searchParams.get('reason') || 'inconnue'}).
             Reessaie ou verifie les permissions.
@@ -282,8 +282,8 @@ export default function ConnectionsPage() {
         />
       </div>
 
-      <div className="mt-6 px-4 py-3 bg-white/[0.02] border border-white/[0.05] rounded-xl">
-        <p className="text-[11px] text-[#555] leading-[1.6]">
+      <div className="mt-6 px-4 py-3 bg-white/[0.02] border border-white/[0.04] rounded-2xl">
+        <p className="text-[11px] text-white/30 leading-[1.6]">
           Tes donnees sont chiffrees et ne sont jamais partagees. Elles sont uniquement utilisees pour generer tes recommandations personnalisees.
         </p>
       </div>

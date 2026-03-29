@@ -17,25 +17,25 @@ function InsightCard({ insight }: { insight: InsightData }) {
   const pct = Math.round(confidenceScore * 100)
 
   return (
-    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-5">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.06]">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] tracking-[0.02em] bg-[#c8a97e]/10 text-[#c8a97e] px-2 py-0.5 rounded-lg">
+        <span className="text-[10px] tracking-widest uppercase bg-white/[0.06] text-[#e8d5b7] px-2.5 py-0.5 rounded-full">
           {insight.sector}
         </span>
         <span
           className={`text-[11px] nums ${
             pct >= 85
-              ? 'text-green-400'
+              ? 'text-white'
               : pct >= 70
-              ? 'text-[#c8a97e]'
-              : 'text-[#888]'
+              ? 'text-[#e8d5b7]'
+              : 'text-white/50'
           }`}
         >
           {pct}% confiance
         </span>
       </div>
-      <p className="text-[13px] text-[#ccc] leading-[1.6]">{insight.insight}</p>
-      <p className="text-[11px] text-[#555] mt-3">{insight.source}</p>
+      <p className="text-[13px] text-white/70 leading-[1.6]">{insight.insight}</p>
+      <p className="text-[11px] text-white/30 mt-3">{insight.source}</p>
     </div>
   )
 }
@@ -62,12 +62,12 @@ export default function MarketInsightsPage() {
     <div className="max-w-4xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-[22px] font-medium tracking-[0.02em] text-white">Market Insights</h2>
-          <p className="text-[13px] text-[#888] mt-2 leading-[1.6]">
+          <h2 className="font-display text-[28px] text-white">Market Insights</h2>
+          <p className="text-[13px] text-white/50 mt-2 leading-[1.6]">
             Analyses cross-secteur du Global Brain
           </p>
         </div>
-        <span className="text-[11px] text-[#555] bg-[#1e1e1e] px-3 py-1.5 rounded-xl">
+        <span className="text-[11px] text-white/30 bg-white/[0.06] px-3 py-1.5 rounded-full">
           {insights.length} insights
         </span>
       </div>
